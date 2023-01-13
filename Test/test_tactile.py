@@ -4,7 +4,6 @@ def test_tactile_contact():
     import pybulletX as px
     import numpy as np
     import tacto
-    import cv2
 
     px.init(mode=p.DIRECT)
     robot = px.Robot("../Meshes/ur10_tactile.urdf", use_fixed_base=True)
@@ -33,9 +32,6 @@ def test_tactile_contact():
 
         color, depth = digits.render()
         digits.updateGUI(color, depth)
-        if step == 0:
-            gray = (np.clip(depth[0] / 0.002, 0, 1) * 255).astype(np.uint8)
-            cv2.imwrite('test_figure/depth_feature_2.png', gray)
         if depth[0].max() > 0.001:  # z_range=0.002 default
             break
         p.stepSimulation()
