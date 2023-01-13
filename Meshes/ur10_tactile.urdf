@@ -200,6 +200,32 @@
       <inertia ixx="0.000526462289415" ixy="0.0" ixz="0.0" iyy="0.000526462289415" iyz="0.0" izz="0.000568125"/>
     </inertial>
   </link>
+  <!-- digit -->
+  <link name="digit_link">
+    <visual>
+      <geometry>
+        <mesh filename="digit.STL"/>
+      </geometry>
+      <material name="white">
+        <color rgba=".9 .9 .9 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="digit.STL"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.1"/>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+      <inertia ixx="0.000526462289415" ixy="0.0" ixz="0.0" iyy="0.000526462289415" iyz="0.0" izz="0.000568125"/>
+    </inertial>
+  </link>
+  <joint name="digit_joint" type="fixed">
+    <parent link="ee_link"/>
+    <child link="digit_link"/>
+    <origin rpy="0 -1.570796325 0" xyz="0.1 0 0"/>
+  </joint>
 
   <transmission name="shoulder_pan_trans">
     <type>transmission_interface/SimpleTransmission</type>

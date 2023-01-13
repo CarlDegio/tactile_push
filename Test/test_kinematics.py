@@ -10,15 +10,15 @@ def test_p2p():
     step = 0
     desire_pos = np.array([0.5, 0.5, 1])
     desire_quaternion = np.array([0, 0, 0, 1])
+    draw_debug.draw_frame(robot.get_joint_index_by_name("ee_fixed_joint"))
     while step < 100:
-        time.sleep(0.1)
+        # time.sleep(0.01) #240hz default,not same as this
 
         desired_joint_positions = p.calculateInverseKinematics(
             robot.id, robot.get_joint_index_by_name("ee_fixed_joint"), desire_pos, desire_quaternion,
         )
         # endEffectorLinkIndex, ee_link == ee_fixed_joint
         # global targetPosition, targetOrientation
-        draw_debug.draw_frame(robot.get_joint_index_by_name("ee_fixed_joint"))
         p.setJointMotorControlArray(
             bodyIndex=robot.id,
             jointIndices=robot.free_joint_indices,
@@ -30,4 +30,4 @@ def test_p2p():
     real_ee_position, real_ee_orientation = \
         p.getLinkState(robot.id, robot.get_joint_index_by_name("ee_fixed_joint"))[0:2]
     assert np.allclose(real_ee_position, desire_pos, atol=0.001)
-    assert np.allclose(real_ee_orientation, desire_quaternion,atol=0.001)
+    assert np.allclose(real_ee_orientation, desire_quaternion, atol=0.001)
