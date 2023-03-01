@@ -41,6 +41,56 @@ def test_tactile_contact():
             assert False
 
 
+def test_tactile_contact_control():
+    from Bullet import draw_debug
+    import pybullet as p
+    import pybulletX as px
+    import numpy as np
+    import tacto
+
+    px.init(mode=p.GUI)
+    robot = px.Robot("../Meshes/ur10_tactile.urdf", use_fixed_base=True)
+    sphere = px.Body("../Meshes/sphere_small/sphere_small.urdf", base_position=[0.7, 0.5, 1.0], use_fixed_base=True)
+    digits = tacto.Sensor()
+    digits.add_camera(robot.id, robot.get_joint_index_by_name("digit_joint"))
+    digits.add_body(sphere)
+
+    desire_pos = np.array([0.5, 0.5, 1])
+    desire_quaternion = np.array([0, 0, 0, 1])
+    draw_debug.draw_frame(robot.get_joint_index_by_name("digit_joint"))
+
+    step = 0
+    control_velocity = 0.0001
+    p_coeff = 0.1
+    d_coeff = 0.01
+    last_delta=0
+    while True:
+        desire_pos[0] += control_velocity
+
+        desired_joint_positions = p.calculateInverseKinematics(
+            robot.id, robot.get_joint_index_by_name("digit_joint"), desire_pos, desire_quaternion,
+        )
+        p.setJointMotorControlArray(
+            bodyIndex=robot.id,
+            jointIndices=robot.free_joint_indices,
+            controlMode=p.POSITION_CONTROL,
+            targetPositions=desired_joint_positions
+        )
+
+        color, depth = digits.render()
+        digits.updateGUI(color, depth)
+
+        delta=0.001-depth[0].max()
+        control_velocity=p_coeff*delta+d_coeff*(delta-last_delta)
+        last_delta=delta
+
+        p.stepSimulation()
+        step += 1
+        if step > 2000:
+            print("no contact information")
+            assert False
+
+
 def test_depth_feature():
     import cv2
     import numpy as np
