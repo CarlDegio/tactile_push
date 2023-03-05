@@ -1,15 +1,16 @@
 def test_p2p():
-    import time
     import pybullet as p
     import pybulletX as px
     import Bullet.draw_debug as draw_debug
+    import Bullet.reset as reset
     import numpy as np
 
     px.init(mode=p.DIRECT)  # mode=p.DIRECT/p.GUI
     robot = px.Robot("../Meshes/ur10_origin.urdf", use_fixed_base=True)
     step = 0
-    desire_pos = np.array([0.5, 0.5, 1])
-    desire_quaternion = np.array([0, 0, 0, 1])
+    reset.reset_ur10(robot)
+    desire_pos = np.array([0.5, 0.5, 0.1])
+    desire_quaternion = np.array([0.707106, 0, -0.707106, 0])
     draw_debug.draw_frame(robot.get_joint_index_by_name("ee_fixed_joint"))
     while step < 100:
         # time.sleep(0.01) #240hz default,not same as this
