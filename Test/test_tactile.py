@@ -98,8 +98,8 @@ def test_depth_feature():
     kit = DepthKit()
     for i in range(3):
         depth = cv2.imread('test_figure/depth_feature_' + str(i) + '.png', cv2.IMREAD_GRAYSCALE)
-        kit.update_depth(depth)
+        kit.update_depth(depth/255*0.002) # input depth range is 0~0.002
         assert kit.check_contact() == (np.max(depth) > 0)
         if kit.check_contact():
             assert np.all(kit.calc_center() == np.mean(np.argwhere(depth > 0), axis=0))
-        assert kit.calc_total() == np.sum(depth / 255)
+        assert kit.calc_total() == np.sum(depth/255) # depth max is 255, while image in kit max is 1
