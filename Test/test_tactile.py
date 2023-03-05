@@ -48,7 +48,7 @@ def test_tactile_contact_control():
     import numpy as np
     import tacto
 
-    px.init(mode=p.GUI)
+    px.init(mode=p.DIRECT)
     robot = px.Robot("../Meshes/ur10_tactile.urdf", use_fixed_base=True)
     sphere = px.Body("../Meshes/sphere_small/sphere_small.urdf", base_position=[0.7, 0.5, 1.0], use_fixed_base=True)
     digits = tacto.Sensor()
