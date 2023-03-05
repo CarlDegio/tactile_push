@@ -1,5 +1,6 @@
 def test_tactile_contact():
     from Bullet import draw_debug
+    import Bullet.reset as reset
     import pybullet as p
     import pybulletX as px
     import numpy as np
@@ -7,15 +8,18 @@ def test_tactile_contact():
 
     px.init(mode=p.DIRECT)
     robot = px.Robot("../Meshes/ur10_tactile.urdf", use_fixed_base=True)
-    sphere = px.Body("../Meshes/sphere_small/sphere_small.urdf", base_position=[0.7, 0.50, 1.0], use_fixed_base=True)
+    sphere = px.Body("../Meshes/sphere_small/sphere_small.urdf", base_position=[0.6, 0.0, 0.5], use_fixed_base=True)
     digits = tacto.Sensor()
     digits.add_camera(robot.id, robot.get_joint_index_by_name("digit_joint"))
     digits.add_body(sphere)
 
-    desire_pos = np.array([0.5, 0.5, 1])
+    desire_pos = np.array([0.4, 0.0, 0.5])
     desire_quaternion = np.array([0, 0, 0, 1])
     draw_debug.draw_frame(robot.get_joint_index_by_name("digit_joint"))
-
+    desired_joint_positions = p.calculateInverseKinematics(
+        robot.id, robot.get_joint_index_by_name("digit_joint"), desire_pos, desire_quaternion,
+    )
+    reset.reset_ur10(robot,desired_joint_positions=desired_joint_positions)
     step = 0
     while True:
         desire_pos[0] += 0.001
@@ -43,21 +47,27 @@ def test_tactile_contact():
 
 def test_tactile_contact_control():
     from Bullet import draw_debug
+    from Bullet import reset
     import pybullet as p
     import pybulletX as px
     import numpy as np
     import tacto
 
-    px.init(mode=p.DIRECT)
+    px.init(mode=p.GUI)
     robot = px.Robot("../Meshes/ur10_tactile.urdf", use_fixed_base=True)
-    sphere = px.Body("../Meshes/sphere_small/sphere_small.urdf", base_position=[0.7, 0.5, 1.0], use_fixed_base=True)
+    sphere = px.Body("../Meshes/sphere_small/sphere_small.urdf", base_position=[0.6, 0.0, 0.5], use_fixed_base=True)
     digits = tacto.Sensor()
     digits.add_camera(robot.id, robot.get_joint_index_by_name("digit_joint"))
     digits.add_body(sphere)
 
-    desire_pos = np.array([0.5, 0.5, 1])
+    desire_pos = np.array([0.5, 0.0, 0.5])
     desire_quaternion = np.array([0, 0, 0, 1])
     draw_debug.draw_frame(robot.get_joint_index_by_name("digit_joint"))
+
+    desired_joint_positions = p.calculateInverseKinematics(
+        robot.id, robot.get_joint_index_by_name("digit_joint"), desire_pos, desire_quaternion,
+    )
+    reset.reset_ur10(robot, desired_joint_positions=desired_joint_positions)
 
     step = 0
     control_velocity = 0.0001
