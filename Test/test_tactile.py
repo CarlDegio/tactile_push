@@ -19,7 +19,7 @@ def test_tactile_contact():
     desired_joint_positions = p.calculateInverseKinematics(
         robot.id, robot.get_joint_index_by_name("digit_joint"), desire_pos, desire_quaternion,
     )
-    reset.reset_ur10(robot,desired_joint_positions=desired_joint_positions)
+    reset.reset_ur10_joints(robot, desired_joint_positions=desired_joint_positions)
     step = 0
     while True:
         desire_pos[0] += 0.001
@@ -67,7 +67,7 @@ def test_tactile_contact_control():
     desired_joint_positions = p.calculateInverseKinematics(
         robot.id, robot.get_joint_index_by_name("digit_joint"), desire_pos, desire_quaternion,
     )
-    reset.reset_ur10(robot, desired_joint_positions=desired_joint_positions)
+    reset.reset_ur10_joints(robot, desired_joint_positions=desired_joint_positions)
 
     step = 0
     control_velocity = 0.0001

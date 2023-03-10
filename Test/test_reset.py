@@ -8,7 +8,7 @@ def test_tactile_contact():
     px.init(mode=p.DIRECT)
     robot = px.Robot("../Meshes/ur10_tactile.urdf", use_fixed_base=True)
     sphere = px.Body("../Meshes/sphere_small/sphere_small.urdf", base_position=[0.7, 0.50, 1.0], use_fixed_base=True)
-    reset.reset_ur10(robot)
+    reset.reset_ur10_joints(robot)
 
     desire_pos = np.array([0.9, 0.0, 0.1])
     desire_quaternion = np.array([0, 0, 0, 1])

@@ -8,7 +8,7 @@ def test_p2p():
     px.init(mode=p.DIRECT)  # mode=p.DIRECT/p.GUI
     robot = px.Robot("../Meshes/ur10_origin.urdf", use_fixed_base=True)
     step = 0
-    reset.reset_ur10(robot)
+    reset.reset_ur10_joints(robot)
     desire_pos = np.array([0.5, 0.5, 0.1])
     desire_quaternion = np.array([0.707106, 0, -0.707106, 0])
     draw_debug.draw_frame(robot.get_joint_index_by_name("ee_fixed_joint"))
