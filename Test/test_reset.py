@@ -16,12 +16,8 @@ def test_tactile_contact():
 
     step = 0
     while True:
-        desired_joint_positions = p.calculateInverseKinematics(
-            robot.id, robot.get_joint_index_by_name("digit_joint"), desire_pos, desire_quaternion,
-        )
+        reset.reset_ur10_cartesian(robot,desired_position=desire_pos,desired_orientation=desire_quaternion)
         p.resetBasePositionAndOrientation(sphere.id, [0.7, 0, 0.5], [0, 0, 0, 1])
-        for i in range(len(robot.free_joint_indices)):
-            p.resetJointState(robot.id, robot.free_joint_indices[i], desired_joint_positions[i])
 
         ball_pos = sphere.get_base_pose()[0]
         real_ee_position = p.getLinkState(robot.id, robot.get_joint_index_by_name("digit_joint"))[0]
