@@ -8,6 +8,7 @@ class DepthKit:
         self.depth = np.clip(depth_poisson / self.z_range, 0, 1)
 
     def update_depth(self, depth_poisson):
+        depth_poisson[depth_poisson<0] = 0 # for sometime bug
         self.depth = np.clip(depth_poisson / self.z_range, 0, 1)
 
     def check_contact(self):

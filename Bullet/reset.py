@@ -22,3 +22,11 @@ def reset_ur10_cartesian(robot: px.Robot, desired_position=None, desired_orienta
             robot.id, robot.get_joint_index_by_name("digit_joint"), desired_position, desired_orientation,
         )
         reset_ur10_joints(robot, desired_joint_positions)
+
+def reset_ball_pos(sphere: px.Body, desired_position=None):
+    """
+    move ball to desired pose
+    """
+    if desired_position is None:
+        desired_position = [0.7, 0.0, 0.5]
+    p.resetBasePositionAndOrientation(sphere.id, desired_position, [0, 0, 0, 1])
