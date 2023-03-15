@@ -3,13 +3,13 @@ import pybulletX as px
 
 
 def get_ee_pose(robot: px.Robot):
-    state = p.getLinkState(robot.id, robot.get_joint_index_by_name("ee_fixed_joint"))
+    state = p.getLinkState(robot.id, robot.get_joint_index_by_name("digit_joint"))
     real_ee_position, real_ee_orientation = state[0:2]
     return real_ee_position, real_ee_orientation
 
 
 def get_ee_vel(robot: px.Robot):
-    state = p.getLinkState(robot.id, robot.get_joint_index_by_name("ee_fixed_joint"), computeLinkVelocity=1)
+    state = p.getLinkState(robot.id, robot.get_joint_index_by_name("digit_joint"), computeLinkVelocity=1)
     real_ee_linear_velocity, real_ee_angular_velocity = state[6:8]
     return real_ee_linear_velocity, real_ee_angular_velocity
 

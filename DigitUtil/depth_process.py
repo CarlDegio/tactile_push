@@ -18,7 +18,7 @@ class DepthKit:
             return False
 
     def calc_center(self):  # TODO: center of circle maybe better
-        center = np.mean(np.argwhere(self.depth > 0), axis=0)
+        center = np.mean(np.argwhere(self.depth >= 0), axis=0)
         return center
 
     def calc_total(self):

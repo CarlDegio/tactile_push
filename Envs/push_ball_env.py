@@ -10,7 +10,7 @@ from DigitUtil import depth_process
 
 
 class PushBallEnv0(gym.Env):
-    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
+    metadata = {"render_modes": ["human", "rgb_array"]}
 
     def __init__(self, render_mode=None, ):
         self.step_repeat = 24
@@ -65,6 +65,7 @@ class PushBallEnv0(gym.Env):
         self.render_mode = render_mode
 
     def _get_obs(self):
+        # TODO: numpy warning
         color, depth = self.digits.render()
         self.digits.updateGUI(color, depth)
         self.depth_kit.update_depth(depth[0])
@@ -103,26 +104,17 @@ class PushBallEnv0(gym.Env):
         self.desire_quaternion = np.array([0, 0, 0, 1])
 
         observation = self._get_obs()
-        info = self._get_info()
 
         if self.render_mode == "human":
             self._render_frame()
 
-        return observation, info
+        return observation
 
     def step(self, action):
-        action["forward"] = np.clip(action["forward"], -0.0005, 0.0005)
-        action["horizontal"] = np.clip(action["horizontal"], -0.0005, 0.0005)
-        action["rotate"] = np.clip(action["rotate"], -1, 1)
+        action["forward"] = np.clip(action["forward"], self.action_space["forward"].low, self.action_space["forward"].high)
+        action["horizontal"] = np.clip(action["horizontal"], self.action_space["horizontal"].low, self.action_space["horizontal"].high)
+        action["rotate"] = np.clip(action["rotate"],self.action_space["rotate"].low, self.action_space["rotate"].high)
         # An episode is done iff the agent has reached the target
-
-        if get_state.check_ball_in_region(self.sphere, region_x=[0.55, 0.65], region_y=[-0.1, 0.1]):
-            reward = 1
-        else:
-            reward = 0
-
-        observation = self._get_obs()
-        info = self._get_info()
 
         for i in range(self.step_repeat):
             self.desire_pos[0] += action["forward"]
@@ -142,12 +134,17 @@ class PushBallEnv0(gym.Env):
             p.stepSimulation()
         self.step_num += 1
 
+        observation = self._get_obs()
+        info = self._get_info()
+        if get_state.check_ball_in_region(self.sphere, region_x=[0.55, 0.65], region_y=[-0.1, 0.1]):
+            reward = 1
+        else:
+            reward = 0
         if self.step_num >= self.max_step:
             done = True
         else:
             done = False
-        if self.render_mode == "human":
-            self._render_frame()
+
 
         return observation, reward, done, info
 

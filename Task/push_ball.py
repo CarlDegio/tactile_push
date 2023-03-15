@@ -39,7 +39,7 @@ while True:
     )
 
     real_ee_position, real_ee_orientation = \
-        p.getLinkState(robot.id, robot.get_joint_index_by_name("ee_fixed_joint"))[0:2]
+        p.getLinkState(robot.id, robot.get_joint_index_by_name("digit_joint"))[0:2]
 
     real_ball_position, real_ball_orientation = sphere.get_base_pose()
 
