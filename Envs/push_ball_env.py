@@ -10,7 +10,7 @@ from DigitUtil import depth_process
 
 
 class PushBallEnv0(gym.Env):
-    metadata = {"render_modes": ["human", "rgb_array"]}
+    metadata = {"render_modes": ["human", "none"]}
 
     def __init__(self, render_mode=None, ):
         self.step_repeat = 24
@@ -18,7 +18,14 @@ class PushBallEnv0(gym.Env):
         self.np_random = None
         self.step_num = 0
 
-        px.init(mode=p.DIRECT)
+        assert render_mode is None or render_mode in self.metadata["render_modes"]
+        if render_mode is None:
+            self.render_mode = "none"
+
+        if self.render_mode == "human":
+            px.init(mode=p.GUI)
+        else:
+            px.init(mode=p.DIRECT)
         self.robot = px.Robot("Meshes/ur10_tactile.urdf", use_fixed_base=True, flags=1)
         self.sphere = px.Body("Meshes/sphere_small/sphere_small.urdf", base_position=[0.27, 0, 0.03],
                               use_fixed_base=False,
@@ -60,9 +67,6 @@ class PushBallEnv0(gym.Env):
                 "rotate": spaces.Box(-1, 1, shape=(1,), dtype=float),
             }
         )
-
-        assert render_mode is None or render_mode in self.metadata["render_modes"]
-        self.render_mode = render_mode
 
     def _get_obs(self):
         # TODO: numpy warning
@@ -111,9 +115,11 @@ class PushBallEnv0(gym.Env):
         return observation
 
     def step(self, action):
-        action["forward"] = np.clip(action["forward"], self.action_space["forward"].low, self.action_space["forward"].high)
-        action["horizontal"] = np.clip(action["horizontal"], self.action_space["horizontal"].low, self.action_space["horizontal"].high)
-        action["rotate"] = np.clip(action["rotate"],self.action_space["rotate"].low, self.action_space["rotate"].high)
+        action["forward"] = np.clip(action["forward"], self.action_space["forward"].low,
+                                    self.action_space["forward"].high)
+        action["horizontal"] = np.clip(action["horizontal"], self.action_space["horizontal"].low,
+                                       self.action_space["horizontal"].high)
+        action["rotate"] = np.clip(action["rotate"], self.action_space["rotate"].low, self.action_space["rotate"].high)
         # An episode is done iff the agent has reached the target
 
         for i in range(self.step_repeat):
@@ -144,7 +150,6 @@ class PushBallEnv0(gym.Env):
             done = True
         else:
             done = False
-
 
         return observation, reward, done, info
 
