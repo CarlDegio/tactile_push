@@ -18,7 +18,7 @@ class PushBallEnv0(gym.Env):
         self.np_random = None
         self.step_num = 0
 
-        px.init(mode=p.DIRECT)
+        px.init(mode=p.GUI)
         self.robot = px.Robot("Meshes/ur10_tactile.urdf", use_fixed_base=True, flags=1)
         self.sphere = px.Body("Meshes/sphere_small/sphere_small.urdf", base_position=[0.27, 0, 0.03],
                               use_fixed_base=False,
@@ -37,18 +37,18 @@ class PushBallEnv0(gym.Env):
         # 2d end effort pos and vel, 2d ball pos and vel, 1d ball angular and vel
         self.observation_space = spaces.Dict(
             {
-                "x": spaces.Box(0.2, 0.8, shape=(1,), dtype=int),
-                "y": spaces.Box(-0.7, 0.7, shape=(1,), dtype=int),
+                "x": spaces.Box(0.2, 0.8, shape=(1,), dtype=float),
+                "y": spaces.Box(-0.7, 0.7, shape=(1,), dtype=float),
                 "angular": spaces.Box(-1, 1, shape=(1,), dtype=float),
-                "vx": spaces.Box(0, 1, shape=(1,), dtype=float),
-                "vy": spaces.Box(-1, 1, shape=(1,), dtype=float),
-                "vangular": spaces.Box(-1, 1, shape=(1,), dtype=float),
+                "vx": spaces.Box(0, 0.12, shape=(1,), dtype=float),
+                "vy": spaces.Box(-0.12, 0.12, shape=(1,), dtype=float),
+                "vangular": spaces.Box(-0.5, 0.5, shape=(1,), dtype=float),
                 "ball_x": spaces.Box(0.2, 0.8, shape=(1,), dtype=float),
                 "ball_y": spaces.Box(-0.7, 0.7, shape=(1,), dtype=float),
-                "ball_vx": spaces.Box(0, 1, shape=(1,), dtype=float),
-                "ball_vy": spaces.Box(-1, 1, shape=(1,), dtype=float),
-                "tactile_mid": spaces.Box(-1, 1, shape=(1,), dtype=float),
-                "tactile_sum": spaces.Box(0, 1, shape=(1,), dtype=float),
+                "ball_vx": spaces.Box(0, 0.12, shape=(1,), dtype=float),
+                "ball_vy": spaces.Box(-0.12, 0.12, shape=(1,), dtype=float),
+                "tactile_mid": spaces.Box(0, 120, shape=(1,), dtype=float),
+                "tactile_sum": spaces.Box(0, 120*160, shape=(1,), dtype=float),
             }
         )
 
@@ -57,7 +57,7 @@ class PushBallEnv0(gym.Env):
             {
                 "forward": spaces.Box(0, 0.0005, shape=(1,), dtype=float),
                 "horizontal": spaces.Box(-0.0005, 0.0005, shape=(1,), dtype=float),
-                "rotate": spaces.Box(-1, 1, shape=(1,), dtype=float),
+                "rotate": spaces.Box(-0.002, 0.002, shape=(1,), dtype=float),
             }
         )
 
