@@ -4,8 +4,8 @@ import pybulletX as px
 
 def get_ee_pose(robot: px.Robot):
     state = p.getLinkState(robot.id, robot.get_joint_index_by_name("digit_joint"))
-    real_ee_position, real_ee_orientation = state[0:2]
-    return real_ee_position, real_ee_orientation
+    real_ee_position, real_ee_quaternion = state[0:2]
+    return real_ee_position, real_ee_quaternion
 
 
 def get_ee_vel(robot: px.Robot):

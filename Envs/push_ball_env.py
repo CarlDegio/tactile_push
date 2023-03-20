@@ -21,6 +21,8 @@ class PushBallEnv0(gym.Env):
         assert render_mode is None or render_mode in self.metadata["render_modes"]
         if render_mode is None:
             self.render_mode = "none"
+        else:
+            self.render_mode = render_mode
 
         if self.render_mode == "human":
             px.init(mode=p.GUI)
@@ -44,8 +46,8 @@ class PushBallEnv0(gym.Env):
         # 2d end effort pos and vel, 2d ball pos and vel, 1d ball angular and vel
         self.observation_space = spaces.Dict(
             {
-                "x": spaces.Box(0.2, 0.8, shape=(1,), dtype=float),
-                "y": spaces.Box(-0.7, 0.7, shape=(1,), dtype=float),
+                "x": spaces.Box(0.2, 0.7, shape=(1,), dtype=float),
+                "y": spaces.Box(-0.65, 0.65, shape=(1,), dtype=float),
                 "angular": spaces.Box(-1, 1, shape=(1,), dtype=float),
                 "vx": spaces.Box(0, 0.12, shape=(1,), dtype=float),
                 "vy": spaces.Box(-0.12, 0.12, shape=(1,), dtype=float),
@@ -55,7 +57,7 @@ class PushBallEnv0(gym.Env):
                 "ball_vx": spaces.Box(0, 0.12, shape=(1,), dtype=float),
                 "ball_vy": spaces.Box(-0.12, 0.12, shape=(1,), dtype=float),
                 "tactile_mid": spaces.Box(0, 120, shape=(1,), dtype=float),
-                "tactile_sum": spaces.Box(0, 120*160, shape=(1,), dtype=float),
+                "tactile_sum": spaces.Box(0, 120 * 160, shape=(1,), dtype=float),
             }
         )
 
@@ -97,6 +99,18 @@ class PushBallEnv0(gym.Env):
             "msg": "normal"
         }
 
+    def _set_desire_pose(self, forward, horizontal, rotate):
+        self.desire_pos[0] += forward
+        self.desire_pos[0] = np.clip(self.desire_pos[0], self.observation_space["x"].low,
+                                     self.observation_space["x"].high)
+        self.desire_pos[1] += horizontal
+        self.desire_pos[1] = np.clip(self.desire_pos[1], self.observation_space["y"].low,
+                                     self.observation_space["y"].high)
+        desire_rotate = p.getEulerFromQuaternion(self.desire_quaternion)[2] + rotate
+        desire_rotate = np.clip(desire_rotate, self.observation_space["angular"].low,
+                                self.observation_space["angular"].high)
+        self.desire_quaternion = p.getQuaternionFromEuler([0, 0, desire_rotate])
+
     def reset(self, seed=None, options=None):
         self.seed(seed)
 
@@ -121,10 +135,7 @@ class PushBallEnv0(gym.Env):
         action["rotate"] = np.clip(action["rotate"], self.action_space["rotate"].low, self.action_space["rotate"].high)
 
         for i in range(self.step_repeat):
-            self.desire_pos[0] += action["forward"]
-            self.desire_pos[1] += action["horizontal"]
-            desire_rotate = p.getEulerFromQuaternion(self.desire_quaternion)[2] + action["rotate"]
-            self.desire_quaternion = p.getQuaternionFromEuler([0, 0, desire_rotate])
+            self._set_desire_pose(action["forward"], action["horizontal"], action["rotate"])
             desire_joint_position = p.calculateInverseKinematics(
                 self.robot.id, self.robot.get_joint_index_by_name("digit_joint"), self.desire_pos,
                 self.desire_quaternion

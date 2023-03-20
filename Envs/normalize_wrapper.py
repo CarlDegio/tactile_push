@@ -23,7 +23,7 @@ class NormalizeWrapper(gym.Wrapper):
         wrapper_obs = np.array([real_obs["x"], real_obs["y"], real_obs["angular"], real_obs["vx"], real_obs["vy"],
                                 real_obs["vangular"], real_obs["ball_x"], real_obs["ball_y"], real_obs["ball_vx"],
                                 real_obs["ball_vy"], real_obs["tactile_mid"], real_obs["tactile_sum"]])
-        wrapper_obs=np.squeeze(wrapper_obs)
+        wrapper_obs=np.squeeze(wrapper_obs, axis=1)
         return wrapper_obs
 
     def _denormalize_action(self, wrapper_action) -> dict:
