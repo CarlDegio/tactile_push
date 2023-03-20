@@ -44,18 +44,18 @@ class PushBallEnv0(gym.Env):
         # 2d end effort pos and vel, 2d ball pos and vel, 1d ball angular and vel
         self.observation_space = spaces.Dict(
             {
-                "x": spaces.Box(0.2, 0.8, shape=(1,), dtype=int),
-                "y": spaces.Box(-0.7, 0.7, shape=(1,), dtype=int),
+                "x": spaces.Box(0.2, 0.8, shape=(1,), dtype=float),
+                "y": spaces.Box(-0.7, 0.7, shape=(1,), dtype=float),
                 "angular": spaces.Box(-1, 1, shape=(1,), dtype=float),
-                "vx": spaces.Box(0, 1, shape=(1,), dtype=float),
-                "vy": spaces.Box(-1, 1, shape=(1,), dtype=float),
-                "vangular": spaces.Box(-1, 1, shape=(1,), dtype=float),
+                "vx": spaces.Box(0, 0.12, shape=(1,), dtype=float),
+                "vy": spaces.Box(-0.12, 0.12, shape=(1,), dtype=float),
+                "vangular": spaces.Box(-0.5, 0.5, shape=(1,), dtype=float),
                 "ball_x": spaces.Box(0.2, 0.8, shape=(1,), dtype=float),
                 "ball_y": spaces.Box(-0.7, 0.7, shape=(1,), dtype=float),
-                "ball_vx": spaces.Box(0, 1, shape=(1,), dtype=float),
-                "ball_vy": spaces.Box(-1, 1, shape=(1,), dtype=float),
-                "tactile_mid": spaces.Box(-1, 1, shape=(1,), dtype=float),
-                "tactile_sum": spaces.Box(0, 1, shape=(1,), dtype=float),
+                "ball_vx": spaces.Box(0, 0.12, shape=(1,), dtype=float),
+                "ball_vy": spaces.Box(-0.12, 0.12, shape=(1,), dtype=float),
+                "tactile_mid": spaces.Box(0, 120, shape=(1,), dtype=float),
+                "tactile_sum": spaces.Box(0, 120*160, shape=(1,), dtype=float),
             }
         )
 
@@ -64,12 +64,11 @@ class PushBallEnv0(gym.Env):
             {
                 "forward": spaces.Box(0, 0.0005, shape=(1,), dtype=float),
                 "horizontal": spaces.Box(-0.0005, 0.0005, shape=(1,), dtype=float),
-                "rotate": spaces.Box(-1, 1, shape=(1,), dtype=float),
+                "rotate": spaces.Box(-0.002, 0.002, shape=(1,), dtype=float),
             }
         )
 
     def _get_obs(self):
-        # TODO: numpy warning
         color, depth = self.digits.render()
         self.digits.updateGUI(color, depth)
         self.depth_kit.update_depth(depth[0])
@@ -120,7 +119,6 @@ class PushBallEnv0(gym.Env):
         action["horizontal"] = np.clip(action["horizontal"], self.action_space["horizontal"].low,
                                        self.action_space["horizontal"].high)
         action["rotate"] = np.clip(action["rotate"], self.action_space["rotate"].low, self.action_space["rotate"].high)
-        # An episode is done iff the agent has reached the target
 
         for i in range(self.step_repeat):
             self.desire_pos[0] += action["forward"]
