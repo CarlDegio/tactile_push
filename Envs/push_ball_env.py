@@ -12,12 +12,12 @@ from DigitUtil import depth_process
 class PushBallEnv0(gym.Env):
     metadata = {"render_modes": ["human", "none"]}
 
-    def __init__(self, render_mode=None, ):
+    def __init__(self, render_mode=None, seed=None):
         self.step_repeat = 24
         self.max_step = 80
         self.np_random = None
         self.step_num = 0
-
+        self.seed(seed)
         assert render_mode is None or render_mode in self.metadata["render_modes"]
         if render_mode is None:
             self.render_mode = "none"
@@ -112,8 +112,6 @@ class PushBallEnv0(gym.Env):
         self.desire_quaternion = p.getQuaternionFromEuler([0, 0, desire_rotate])
 
     def reset(self, seed=None, options=None):
-        self.seed(seed)
-
         start_y = self.np_random.uniform(low=-0.6, high=0.6)
         reset.reset_ur10_cartesian(self.robot, [0.2, start_y, 0.01], [0, 0, 0, 1])
         reset.reset_ball_pos(self.sphere, [0.27, start_y, 0.03])
@@ -121,7 +119,7 @@ class PushBallEnv0(gym.Env):
         self.desire_quaternion = np.array([0, 0, 0, 1])
 
         observation = self._get_obs()
-
+        self.step_num = 0
         if self.render_mode == "human":
             self._render_frame()
 
@@ -163,8 +161,7 @@ class PushBallEnv0(gym.Env):
         return observation, reward, done, info
 
     def render(self):
-        if self.render_mode == "rgb_array":
-            return self._render_frame()
+        pass
 
     def _render_frame(self):
         pass

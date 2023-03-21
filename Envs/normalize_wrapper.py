@@ -40,7 +40,7 @@ class NormalizeWrapper(gym.Wrapper):
         observation = self._normalize_obs(observation)
         return observation, reward, done, info
 
-    def reset(self,seed=None, options=None):
-        real_obs=self.env.reset(seed=seed, options=options)
+    def reset(self, options=None):
+        real_obs=self.env.reset(options=options)
         wrapper_obs=self._normalize_obs(real_obs)
         return wrapper_obs
