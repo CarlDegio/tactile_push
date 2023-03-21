@@ -1,10 +1,10 @@
 
 import gym
-from stable_baselines3 import SAC
+from stable_baselines3 import SAC,PPO,DDPG
 
 env = gym.make("Pendulum-v1")
-model = SAC("MlpPolicy", env, verbose=1)
-model.learn(total_timesteps=1000)
+model = DDPG("MlpPolicy", env, verbose=1,tensorboard_log="./pendulum_tensorboard/")
+model.learn(total_timesteps=40000)
 
 vec_env = model.get_env()
 obs = vec_env.reset()
