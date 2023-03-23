@@ -1,6 +1,6 @@
 import pybullet as p
 import pybulletX as px
-
+import numpy as np
 
 def get_ee_pose(robot: px.Robot):
     state = p.getLinkState(robot.id, robot.get_joint_index_by_name("digit_joint"))
@@ -30,3 +30,8 @@ def check_ball_in_region(ball: px.Body, region_x, region_y):
         return True
     else:
         return False
+
+def calc_ball_to_goal(ball: px.Body, goal_pos):
+    ball_pos = get_ball_pos(ball)
+    dis=np.sqrt((ball_pos[0]-goal_pos[0])**2+(ball_pos[1]-goal_pos[1])**2)
+    return dis

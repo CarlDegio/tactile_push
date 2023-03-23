@@ -120,8 +120,6 @@ class PushBallEnv0(gym.Env):
 
         observation = self._get_obs()
         self.step_num = 0
-        if self.render_mode == "human":
-            self._render_frame()
 
         return observation
 
