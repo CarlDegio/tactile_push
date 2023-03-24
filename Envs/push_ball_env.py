@@ -113,6 +113,7 @@ class PushBallEnv0(gym.Env):
         self.desire_quaternion = p.getQuaternionFromEuler([0, 0, desire_rotate])
 
     def reset(self, seed=None, options=None):
+        # TODO: some pose is not reachable
         start_y = self.np_random.uniform(low=-0.6, high=0.6)
         reset.reset_ur10_cartesian(self.robot, [0.2, start_y, 0.01], [0, 0, 0, 1])
         reset.reset_ball_pos(self.sphere, [0.27, start_y, 0.03])
