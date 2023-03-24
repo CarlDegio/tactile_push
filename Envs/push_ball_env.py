@@ -12,12 +12,13 @@ from DigitUtil import depth_process
 class PushBallEnv0(gym.Env):
     metadata = {"render_modes": ["human", "none"]}
 
-    def __init__(self, render_mode=None, seed=None):
+    def __init__(self, render_mode=None, seed=None, dense_reward=False):
         self.step_repeat = 24
         self.max_step = 80
         self.np_random = None
         self.step_num = 0
         self.seed(seed)
+        self.dense_reward = dense_reward
         assert render_mode is None or render_mode in self.metadata["render_modes"]
         if render_mode is None:
             self.render_mode = "none"
@@ -57,7 +58,7 @@ class PushBallEnv0(gym.Env):
                 "ball_vx": spaces.Box(0, 0.12, shape=(1,), dtype=float),
                 "ball_vy": spaces.Box(-0.12, 0.12, shape=(1,), dtype=float),
                 "tactile_mid": spaces.Box(0, 120, shape=(1,), dtype=float),
-                "tactile_sum": spaces.Box(0, 120 * 160/50, shape=(1,), dtype=float),
+                "tactile_sum": spaces.Box(0, 120 * 160 / 50, shape=(1,), dtype=float),
             }
         )
 
@@ -151,6 +152,9 @@ class PushBallEnv0(gym.Env):
             reward = 1
         else:
             reward = 0
+        if self.dense_reward:
+            reward -= get_state.calc_ball_to_goal(self.sphere, [0.6, 0])
+
         if self.step_num >= self.max_step:
             done = True
         else:
