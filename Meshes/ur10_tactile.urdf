@@ -13,11 +13,11 @@
         <mesh filename="package://ur_description/meshes/ur10/visual/Base.dae"/>
       </geometry>
     </visual>
-    <collision>
+    <!--collision>
       <geometry>
         <mesh filename="package://ur_description/meshes/ur10/collision/Base.dae"/>
       </geometry>
-    </collision>
+    </collision-->
     <inertial>
       <mass value="4.0"/>
       <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
@@ -38,11 +38,11 @@
         <mesh filename="package://ur_description/meshes/ur10/visual/Shoulder.dae"/>
       </geometry>
     </visual>
-    <collision>
+    <!--collision>
       <geometry>
         <mesh filename="package://ur_description/meshes/ur10/collision/Shoulder.dae"/>
       </geometry>
-    </collision>
+    </collision-->
     <inertial>
       <mass value="7.778"/>
       <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
@@ -63,11 +63,11 @@
         <mesh filename="package://ur_description/meshes/ur10/visual/UpperArm.dae"/>
       </geometry>
     </visual>
-    <collision>
+    <!--collision>
       <geometry>
         <mesh filename="package://ur_description/meshes/ur10/collision/UpperArm.dae"/>
       </geometry>
-    </collision>
+    </collision-->
     <inertial>
       <mass value="12.93"/>
       <origin rpy="0 0 0" xyz="0.0 0.0 0.306"/>
@@ -88,11 +88,11 @@
         <mesh filename="package://ur_description/meshes/ur10/visual/Forearm.dae"/>
       </geometry>
     </visual>
-    <collision>
+    <!--collision>
       <geometry>
         <mesh filename="package://ur_description/meshes/ur10/collision/Forearm.dae"/>
       </geometry>
-    </collision>
+    </collision-->
     <inertial>
       <mass value="3.87"/>
       <origin rpy="0 0 0" xyz="0.0 0.0 0.28615"/>
@@ -113,11 +113,11 @@
         <mesh filename="package://ur_description/meshes/ur10/visual/Wrist1.dae"/>
       </geometry>
     </visual>
-    <collision>
+    <!--collision>
       <geometry>
         <mesh filename="package://ur_description/meshes/ur10/collision/Wrist1.dae"/>
       </geometry>
-    </collision>
+    </collision-->
     <inertial>
       <mass value="1.96"/>
       <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
@@ -138,11 +138,11 @@
         <mesh filename="package://ur_description/meshes/ur10/visual/Wrist2.dae"/>
       </geometry>
     </visual>
-    <collision>
+    <!--collision>
       <geometry>
         <mesh filename="package://ur_description/meshes/ur10/collision/Wrist2.dae"/>
       </geometry>
-    </collision>
+    </collision-->
     <inertial>
       <mass value="1.96"/>
       <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
@@ -163,11 +163,11 @@
         <mesh filename="package://ur_description/meshes/ur10/visual/Wrist3.dae"/>
       </geometry>
     </visual>
-    <collision>
+    <!--collision>
       <geometry>
         <mesh filename="package://ur_description/meshes/ur10/collision/Wrist3.dae"/>
       </geometry>
-    </collision>
+    </collision-->
     <inertial>
       <mass value="0.202"/>
       <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
@@ -189,11 +189,11 @@
         <color rgba="0 1.0 1.0 1.0"/>
       </material>
     </visual>
-    <collision>
+    <!--collision>
       <geometry>
         <box size="0.05 0.05 0.05" />
       </geometry>
-    </collision>
+    </collision-->
     <inertial>
       <mass value="0.1"/>
       <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
