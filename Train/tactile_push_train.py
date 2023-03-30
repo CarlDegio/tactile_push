@@ -15,16 +15,7 @@ def push_ball_train():
                 use_sde=True)
     for i in range(10):
         model.learn(total_timesteps=60000, reset_num_timesteps=False,tb_log_name="SAC_0323night")
-        model.save("./Train/tactile_push_ball_sac")
-        model.save_replay_buffer("./Train/tactile_push_ball_sac_buffer")
-
-    # model = SAC.load("./Train/tactile_push_ball_sac", env=wrapperd_env)
-    # vec_env = model.get_env()
-    # for i in range(5):
-    #     observation = vec_env.reset()
-    #     done = False
-    #     while not done:
-    #         action, _states = model.predict(observation, deterministic=True)
-    #         observation, reward, done, info = vec_env.step(action)
+        model.save("./Train/load_save/tactile_push_ball_sac")
+        model.save_replay_buffer("./Train/load_save/tactile_push_ball_sac_buffer")
 
 # run in project root dir
