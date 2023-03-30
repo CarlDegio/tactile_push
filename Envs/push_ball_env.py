@@ -1,3 +1,5 @@
+import os
+
 import gym
 import tacto
 from gym import spaces
@@ -19,6 +21,7 @@ class PushBallEnv0(gym.Env):
         self.step_num = 0
         self.seed(seed)
         self.dense_reward = dense_reward
+        project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         assert render_mode is None or render_mode in self.metadata["render_modes"]
         if render_mode is None:
             self.render_mode = "none"
@@ -29,8 +32,9 @@ class PushBallEnv0(gym.Env):
             px.init(mode=p.GUI)
         else:
             px.init(mode=p.DIRECT)
-        self.robot = px.Robot("Meshes/ur10_tactile.urdf", use_fixed_base=True, flags=1)
-        self.sphere = px.Body("Meshes/sphere_small/sphere_small.urdf", base_position=[0.27, 0, 0.03],
+        self.robot = px.Robot(os.path.join(project_path, "Meshes/ur10_tactile.urdf"), use_fixed_base=True, flags=1)
+        self.sphere = px.Body(os.path.join(project_path, "Meshes/sphere_small/sphere_small.urdf"),
+                              base_position=[0.27, 0, 0.03],
                               use_fixed_base=False,
                               flags=1)
         self.digits = tacto.Sensor()
