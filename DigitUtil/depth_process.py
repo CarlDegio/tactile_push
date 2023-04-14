@@ -17,9 +17,14 @@ class DepthKit:
         else:
             return False
 
-    def calc_center(self):  # TODO: center of circle maybe better
-        center = np.mean(np.argwhere(self.depth >= 0), axis=0)
-        return center
+    def calc_center(self):
+        M = cv2.moments(self.depth)
+        if M["m00"] <= 1e-6:
+            return [79.5, 59.5]
+        else:
+            cX = M["m01"] / M["m00"]
+            cY = M["m10"] / M["m00"]
+            return [cX,cY]
 
     def calc_total(self):
         return np.sum(self.depth)
