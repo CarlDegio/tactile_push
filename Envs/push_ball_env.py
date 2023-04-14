@@ -34,7 +34,7 @@ class PushBallEnv0(gym.Env):
             px.init(mode=p.DIRECT)
         self.robot = px.Robot(os.path.join(project_path, "Meshes/ur10_tactile.urdf"), use_fixed_base=True, flags=1)
         self.sphere = px.Body(os.path.join(project_path, "Meshes/sphere_small/sphere_small.urdf"),
-                              base_position=[0.27, 0, 0.03],
+                              base_position=[0.32, 0, 0.03],
                               use_fixed_base=False,
                               flags=1)
         self.digits = tacto.Sensor()
@@ -42,7 +42,7 @@ class PushBallEnv0(gym.Env):
         self.digits.add_body(self.sphere)
         self.depth_kit = depth_process.DepthKit()
 
-        self.desire_pos = np.array([0.2, 0.0, 0.01])
+        self.desire_pos = np.array([0.25, 0.0, 0.01])
         self.desire_quaternion = np.array([0, 0, 0, 1])
         draw_debug.draw_frame(self.robot.get_joint_index_by_name("digit_joint"))
         draw_debug.draw_area(size=[0.05, 0.1, 0.05], position=[0.6, 0.0, 0])
@@ -51,13 +51,13 @@ class PushBallEnv0(gym.Env):
         # 2d end effort pos and vel, 2d ball pos and vel, 1d ball angular and vel
         self.observation_space = spaces.Dict(
             {
-                "x": spaces.Box(0.2, 0.7, shape=(1,), dtype=float),
+                "x": spaces.Box(0.25, 0.7, shape=(1,), dtype=float),
                 "y": spaces.Box(-0.65, 0.65, shape=(1,), dtype=float),
                 "angular": spaces.Box(-1, 1, shape=(1,), dtype=float),
                 "vx": spaces.Box(0, 0.12, shape=(1,), dtype=float),
                 "vy": spaces.Box(-0.12, 0.12, shape=(1,), dtype=float),
                 "vangular": spaces.Box(-0.5, 0.5, shape=(1,), dtype=float),
-                "ball_x": spaces.Box(0.2, 0.8, shape=(1,), dtype=float),
+                "ball_x": spaces.Box(0.3, 0.8, shape=(1,), dtype=float),
                 "ball_y": spaces.Box(-0.7, 0.7, shape=(1,), dtype=float),
                 "ball_vx": spaces.Box(0, 0.12, shape=(1,), dtype=float),
                 "ball_vy": spaces.Box(-0.12, 0.12, shape=(1,), dtype=float),
@@ -120,9 +120,9 @@ class PushBallEnv0(gym.Env):
     def reset(self, seed=None, options=None):
         # TODO: some pose is not reachable
         start_y = self.np_random.uniform(low=-0.6, high=0.6)
-        reset.reset_ur10_cartesian(self.robot, [0.2, start_y, 0.01], [0, 0, 0, 1])
-        reset.reset_ball_pos(self.sphere, [0.27, start_y, 0.03])
-        self.desire_pos = np.array([0.2, start_y, 0.01])
+        reset.reset_ur10_cartesian(self.robot, [0.25, start_y, 0.01], [0, 0, 0, 1])
+        reset.reset_ball_pos(self.sphere, [0.32, start_y, 0.03])
+        self.desire_pos = np.array([0.25, start_y, 0.01])
         self.desire_quaternion = np.array([0, 0, 0, 1])
 
         observation = self._get_obs()

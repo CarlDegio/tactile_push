@@ -1,7 +1,7 @@
 import pybullet as p
 import numpy as np
 
-
+from .rotate_mapping import xoy_point_rotate_y_axis
 def add_box(size, position, quaternion=None):
     if quaternion is None:
         quaternion = [0, 0, 0, 1]
@@ -26,13 +26,6 @@ def add_walls_incline(theta: float):
     add_box([0.4, 0.02, 0.05], xoy_point_rotate_y_axis([0.4, 0.7, 0.05], theta=theta), quaternion=quaternion)
     add_box([0.4, 0.02, 0.05], xoy_point_rotate_y_axis([0.4, -0.7, 0.05], theta=theta), quaternion=quaternion)
     add_box([0.02, 0.7, 0.05], xoy_point_rotate_y_axis([0.8, 0.0, 0.05], theta=theta), quaternion=quaternion)
+    add_box([0.02, 0.7, 0.05], xoy_point_rotate_y_axis([0.2, 0.0, 0.05], theta=theta), quaternion=quaternion)
     add_box([0.4, 0.7, 0.05], xoy_point_rotate_y_axis([0.4, 0.0, -0.05], theta=theta), quaternion=quaternion)
 
-
-def xoy_point_rotate_y_axis(position: list or np.ndarray, theta: float):
-    # theta:rad
-    quaternion = p.getQuaternionFromEuler([0, -theta, 0])
-    rotate_matrix = p.getMatrixFromQuaternion(quaternion)
-    rotate_matrix = np.array([rotate_matrix[0:3], rotate_matrix[3:6], rotate_matrix[6:9]])
-    new_position = rotate_matrix @ np.array(position)
-    return new_position
