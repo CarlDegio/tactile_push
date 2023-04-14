@@ -62,7 +62,7 @@ class PushBallEnv0(gym.Env):
                 "ball_vx": spaces.Box(0, 0.12, shape=(1,), dtype=float),
                 "ball_vy": spaces.Box(-0.12, 0.12, shape=(1,), dtype=float),
                 "tactile_mid": spaces.Box(0, 120, shape=(1,), dtype=float),
-                "tactile_sum": spaces.Box(0, 120 * 160 / 40, shape=(1,), dtype=float),
+                "tactile_sum": spaces.Box(0, 120 * 160 / 80, shape=(1,), dtype=float),
             }
         )
 

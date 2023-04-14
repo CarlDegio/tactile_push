@@ -6,6 +6,8 @@ import pybulletX as px
 import numpy as np
 import tacto
 
+from DigitUtil import depth_process
+
 px.init(mode=p.GUI)
 robot = px.Robot("../Meshes/ur10_tactile.urdf", use_fixed_base=True, flags=1)
 sphere = px.Body("../Meshes/sphere_small/sphere_small.urdf", base_position=[0.27, 0, 0.03], use_fixed_base=False,
@@ -20,6 +22,8 @@ draw_debug.draw_frame(robot.get_joint_index_by_name("digit_joint"))
 draw_debug.draw_area(size=[0.05, 0.1, 0.05], position=[0.6, 0.0, 0])
 reset.reset_ur10_cartesian(robot, desire_pos, desire_quaternion)
 add_wall.add_walls()
+
+depth_kit = depth_process.DepthKit()
 
 tick = 0
 
@@ -46,6 +50,7 @@ while True:
     if tick % 24 == 0:  # low frequency
         color, depth = digits.render()
         digits.updateGUI(color, depth)
-        print(np.sum(depth))  # z_range=0.002
+        depth_kit.update_depth(depth[0])
+        print("mean:", depth_kit.calc_center()[1], "---total:", depth_kit.calc_total())
     p.stepSimulation()
     tick += 1
