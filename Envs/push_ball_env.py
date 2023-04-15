@@ -91,7 +91,7 @@ class PushBallEnv0(gym.Env):
             "angular": p.getEulerFromQuaternion(real_quaternion)[2],
             "vx": real_linear_velocity[0],
             "vy": real_linear_velocity[1],
-            "vangular": real_linear_velocity[2],
+            "vangular": real_angular_velocity[2],
             "ball_x": real_ball_pos[0],
             "ball_y": real_ball_pos[1],
             "ball_vx": real_ball_vel[0],
