@@ -7,11 +7,11 @@ import numpy as np
 import pybullet as p
 import pybulletX as px
 
-from Bullet import draw_debug, add_wall, reset, get_state
+from Bullet import draw_debug, add_wall, reset, get_state, rotate_mapping
 from DigitUtil import depth_process
 
 
-class PushBallEnv0(gym.Env):
+class PushBallEnv1(gym.Env):
     metadata = {"render_modes": ["human", "none"]}
 
     def __init__(self, render_mode=None, seed=None, dense_reward=False):
@@ -21,6 +21,7 @@ class PushBallEnv0(gym.Env):
         self.step_num = 0
         self.seed(seed)
         self.dense_reward = dense_reward
+        self.incline_rad = np.pi / 180 * 10
         project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         assert render_mode is None or render_mode in self.metadata["render_modes"]
         if render_mode is None:
@@ -42,11 +43,19 @@ class PushBallEnv0(gym.Env):
         self.digits.add_body(self.sphere)
         self.depth_kit = depth_process.DepthKit()
 
-        self.desire_pos = np.array([0.25, 0.0, 0.01])
-        self.desire_quaternion = np.array([0, 0, 0, 1])
+        self.desire_plane_pos = np.array([0.25, 0.0, 0.01])
+        self.desire_real_pos = rotate_mapping.xoy_point_rotate_y_axis(self.desire_plane_pos, theta=self.incline_rad)
+        self.desire_plane_quaternion = np.array([0, 0, 0, 1])
+        self.desire_real_quaternion = p.getQuaternionFromEuler([0, -self.incline_rad, 0])
+        self.scene_quaternion = p.getQuaternionFromEuler([0, -self.incline_rad, 0])
+        self.ball_plane_pos = np.array([0.32, 0.0, 0.03])
+        self.ball_real_pos = rotate_mapping.xoy_point_rotate_y_axis(self.ball_plane_pos, theta=self.incline_rad)
+
         draw_debug.draw_frame(self.robot.get_joint_index_by_name("digit_joint"))
-        draw_debug.draw_area(size=[0.05, 0.1, 0.05], position=[0.6, 0.0, 0])
-        add_wall.add_walls()
+        draw_debug.draw_area(size=[0.05, 0.1, 0.05],
+                             position=rotate_mapping.xoy_point_rotate_y_axis([0.6, 0, 0], theta=self.incline_rad),
+                             quaternion=self.scene_quaternion)
+        add_wall.add_walls_incline(self.incline_rad)
 
         # 2d end effort pos and vel, 2d ball pos and vel, 1d ball angular and vel
         self.observation_space = spaces.Dict(
@@ -57,12 +66,12 @@ class PushBallEnv0(gym.Env):
                 "vx": spaces.Box(0, 0.12, shape=(1,), dtype=float),
                 "vy": spaces.Box(-0.12, 0.12, shape=(1,), dtype=float),
                 "vangular": spaces.Box(-0.5, 0.5, shape=(1,), dtype=float),
-                "ball_x": spaces.Box(0.3, 0.8, shape=(1,), dtype=float),
+                "ball_x": spaces.Box(0.2, 0.8, shape=(1,), dtype=float),
                 "ball_y": spaces.Box(-0.7, 0.7, shape=(1,), dtype=float),
-                "ball_vx": spaces.Box(0, 0.12, shape=(1,), dtype=float),
+                "ball_vx": spaces.Box(-0.12, 0.12, shape=(1,), dtype=float),
                 "ball_vy": spaces.Box(-0.12, 0.12, shape=(1,), dtype=float),
                 "tactile_mid": spaces.Box(0, 120, shape=(1,), dtype=float),
-                "tactile_sum": spaces.Box(0, 120 * 160 / 80, shape=(1,), dtype=float),
+                "tactile_sum": spaces.Box(0, 120 * 160 / 40, shape=(1,), dtype=float),
             }
         )
 
@@ -81,21 +90,29 @@ class PushBallEnv0(gym.Env):
             self.digits.updateGUI(color, depth)
         self.depth_kit.update_depth(depth[0])
 
+        # 将末端和球的空间坐标还原到平面坐标
         real_pos, real_quaternion = get_state.get_ee_pose(self.robot)
+        plane_project_pos = rotate_mapping.xoy_point_rotate_y_axis(real_pos, theta=-self.incline_rad)
+
         real_linear_velocity, real_angular_velocity = get_state.get_ee_vel(self.robot)
-        real_ball_pos = get_state.get_ball_pos(self.sphere)
+        plane_project_vel = rotate_mapping.xoy_point_rotate_y_axis(real_linear_velocity, theta=-self.incline_rad)
+
+        self.ball_real_pos = get_state.get_ball_pos(self.sphere)
+        self.ball_plane_pos = rotate_mapping.xoy_point_rotate_y_axis(self.ball_real_pos, theta=-self.incline_rad)
         real_ball_vel = get_state.get_ball_vel(self.sphere)
+        ball_plane_project_vel = rotate_mapping.xoy_point_rotate_y_axis(real_ball_vel, theta=-self.incline_rad)
+
         return {
-            "x": real_pos[0],
-            "y": real_pos[1],
-            "angular": p.getEulerFromQuaternion(real_quaternion)[2],
-            "vx": real_linear_velocity[0],
-            "vy": real_linear_velocity[1],
-            "vangular": real_angular_velocity[2],
-            "ball_x": real_ball_pos[0],
-            "ball_y": real_ball_pos[1],
-            "ball_vx": real_ball_vel[0],
-            "ball_vy": real_ball_vel[1],
+            "x": plane_project_pos[0],
+            "y": plane_project_pos[1],
+            "angular": p.getEulerFromQuaternion(real_quaternion)[2],  # 恰好pybullet是按XYZ顺序转
+            "vx": plane_project_vel[0],
+            "vy": plane_project_vel[1],
+            "vangular": real_angular_velocity[2] / np.cos(self.incline_rad),
+            "ball_x": self.ball_plane_pos[0],
+            "ball_y": self.ball_plane_pos[1],
+            "ball_vx": ball_plane_project_vel[0],
+            "ball_vy": ball_plane_project_vel[1],
             "tactile_mid": self.depth_kit.calc_center()[1],
             "tactile_sum": self.depth_kit.calc_total(),
         }
@@ -106,24 +123,31 @@ class PushBallEnv0(gym.Env):
         }
 
     def _set_desire_pose(self, forward, horizontal, rotate):
-        self.desire_pos[0] += forward
-        self.desire_pos[0] = np.clip(self.desire_pos[0], self.observation_space["x"].low,
-                                     self.observation_space["x"].high)
-        self.desire_pos[1] += horizontal
-        self.desire_pos[1] = np.clip(self.desire_pos[1], self.observation_space["y"].low,
-                                     self.observation_space["y"].high)
-        desire_rotate = p.getEulerFromQuaternion(self.desire_quaternion)[2] + rotate
-        desire_rotate = np.clip(desire_rotate, self.observation_space["angular"].low,
-                                self.observation_space["angular"].high)
-        self.desire_quaternion = p.getQuaternionFromEuler([0, 0, desire_rotate])
+        self.desire_plane_pos[0] += forward
+        self.desire_plane_pos[0] = np.clip(self.desire_plane_pos[0], self.observation_space["x"].low,
+                                           self.observation_space["x"].high)
+        self.desire_plane_pos[1] += horizontal
+        self.desire_plane_pos[1] = np.clip(self.desire_plane_pos[1], self.observation_space["y"].low,
+                                           self.observation_space["y"].high)
+        self.desire_real_pos = rotate_mapping.xoy_point_rotate_y_axis(self.desire_plane_pos, theta=self.incline_rad)
+
+        desire_rotate_angle = p.getEulerFromQuaternion(self.desire_plane_quaternion)[2] + rotate
+        desire_rotate_angle = np.clip(desire_rotate_angle, self.observation_space["angular"].low,
+                                      self.observation_space["angular"].high)
+        self.desire_plane_quaternion = p.getQuaternionFromEuler([0, 0, desire_rotate_angle])
+        self.desire_real_quaternion = p.multiplyTransforms([0, 0, 0], self.scene_quaternion,
+                                                           [0, 0, 0], self.desire_plane_quaternion)[1]
 
     def reset(self, seed=None, options=None):
-        # TODO: some pose is not reachable
         start_y = self.np_random.uniform(low=-0.6, high=0.6)
-        reset.reset_ur10_cartesian(self.robot, [0.25, start_y, 0.01], [0, 0, 0, 1])
-        reset.reset_ball_pos(self.sphere, [0.32, start_y, 0.03])
-        self.desire_pos = np.array([0.25, start_y, 0.01])
-        self.desire_quaternion = np.array([0, 0, 0, 1])
+        self.desire_plane_pos = np.array([0.25, start_y, 0.01])
+        self.desire_real_pos = rotate_mapping.xoy_point_rotate_y_axis(self.desire_plane_pos, theta=self.incline_rad)
+        self.desire_plane_quaternion = np.array([0, 0, 0, 1])
+        reset.reset_ur10_cartesian(self.robot, self.desire_real_pos, self.scene_quaternion)
+
+        self.ball_plane_pos = np.array([0.32, start_y, 0.03])
+        self.ball_real_pos = rotate_mapping.xoy_point_rotate_y_axis(self.ball_plane_pos, theta=self.incline_rad)
+        reset.reset_ball_pos(self.sphere, self.ball_real_pos)
 
         observation = self._get_obs()
         self.step_num = 0
@@ -140,8 +164,8 @@ class PushBallEnv0(gym.Env):
         for i in range(self.step_repeat):
             self._set_desire_pose(action["forward"], action["horizontal"], action["rotate"])
             desire_joint_position = p.calculateInverseKinematics(
-                self.robot.id, self.robot.get_joint_index_by_name("digit_joint"), self.desire_pos,
-                self.desire_quaternion
+                self.robot.id, self.robot.get_joint_index_by_name("digit_joint"), self.desire_real_pos,
+                self.desire_real_quaternion
             )
             p.setJointMotorControlArray(
                 bodyIndex=self.robot.id,
@@ -154,12 +178,15 @@ class PushBallEnv0(gym.Env):
 
         observation = self._get_obs()
         info = self._get_info()
-        if get_state.check_ball_in_region(self.sphere, region_x=[0.55, 0.65], region_y=[-0.1, 0.1]):
+        if get_state.check_ball_in_region_3d(self.sphere,self.incline_rad, region_x=[0.55, 0.65], region_y=[-0.1, 0.1]):
             reward = 1
         else:
             reward = 0
         if self.dense_reward:
-            reward -= get_state.calc_ball_to_goal(self.sphere, [0.6, 0])
+            reward -= get_state.calc_ball_to_goal_3d(self.sphere,
+                                                     rotate_mapping.xoy_point_rotate_y_axis(
+                                                              [0.6, 0, 0], theta=self.incline_rad)
+                                                     )
 
         if self.step_num >= self.max_step:
             done = True

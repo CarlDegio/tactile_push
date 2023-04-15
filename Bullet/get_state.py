@@ -1,6 +1,8 @@
 import pybullet as p
 import pybulletX as px
 import numpy as np
+from .rotate_mapping import xoy_point_rotate_y_axis
+
 
 def get_ee_pose(robot: px.Robot):
     state = p.getLinkState(robot.id, robot.get_joint_index_by_name("digit_joint"))
@@ -31,7 +33,25 @@ def check_ball_in_region(ball: px.Body, region_x, region_y):
     else:
         return False
 
+
+def check_ball_in_region_3d(ball: px.Body, theta, region_x, region_y):
+    ball_pos = get_ball_pos(ball)
+    ball_plane_pos = xoy_point_rotate_y_axis(ball_pos, -theta)
+    if region_x[0] < ball_plane_pos[0] < region_x[1] and region_y[0] < ball_plane_pos[1] < region_y[1]:
+        return True
+    else:
+        return False
+
+
 def calc_ball_to_goal(ball: px.Body, goal_pos):
     ball_pos = get_ball_pos(ball)
-    dis=np.sqrt((ball_pos[0]-goal_pos[0])**2+(ball_pos[1]-goal_pos[1])**2)
+    dis = np.sqrt((ball_pos[0] - goal_pos[0]) ** 2 + (ball_pos[1] - goal_pos[1]) ** 2)
+    return dis
+
+
+def calc_ball_to_goal_3d(ball: px.Body, goal_pos):
+    ball_pos = get_ball_pos(ball)
+    dis = np.sqrt((ball_pos[0] - goal_pos[0]) ** 2 +
+                  (ball_pos[1] - goal_pos[1]) ** 2 +
+                  (ball_pos[2] - goal_pos[2]) ** 2)
     return dis
