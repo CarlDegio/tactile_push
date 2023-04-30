@@ -60,7 +60,7 @@ class PushBallEnv1(gym.Env):
         # 2d end effort pos and vel, 2d ball pos and vel, 1d ball angular and vel
         self.observation_space = spaces.Dict(
             {
-                "x": spaces.Box(0.25, 0.68, shape=(1,), dtype=float),
+                "x": spaces.Box(0.24, 0.68, shape=(1,), dtype=float),
                 "y": spaces.Box(-0.65, 0.65, shape=(1,), dtype=float),
                 "angular": spaces.Box(-1, 1, shape=(1,), dtype=float),
                 "vx": spaces.Box(0, 0.12, shape=(1,), dtype=float),
@@ -78,7 +78,7 @@ class PushBallEnv1(gym.Env):
         # end effort move
         self.action_space = spaces.Dict(
             {
-                "forward": spaces.Box(0, 0.0005, shape=(1,), dtype=float),
+                "forward": spaces.Box(-0.0001, 0.0005, shape=(1,), dtype=float),
                 "horizontal": spaces.Box(-0.0005, 0.0005, shape=(1,), dtype=float),
                 "rotate": spaces.Box(-0.002, 0.002, shape=(1,), dtype=float),
             }
@@ -139,7 +139,7 @@ class PushBallEnv1(gym.Env):
                                                            [0, 0, 0], self.desire_plane_quaternion)[1]
 
     def reset(self, seed=None, options=None):
-        start_y = self.np_random.uniform(low=-0.6, high=0.6)
+        start_y = self.np_random.uniform(low=-0.4, high=0.4)
         self.desire_plane_pos = np.array([0.25, start_y, 0.01])
         self.desire_real_pos = rotate_mapping.xoy_point_rotate_y_axis(self.desire_plane_pos, theta=self.incline_rad)
         self.desire_plane_quaternion = np.array([0, 0, 0, 1])
