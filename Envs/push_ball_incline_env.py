@@ -14,13 +14,14 @@ from DigitUtil import depth_process
 class PushBallEnv1(gym.Env):
     metadata = {"render_modes": ["human", "none"]}
 
-    def __init__(self, render_mode=None, seed=None, dense_reward=False):
+    def __init__(self, render_mode=None, seed=None, dense_reward=False, tactile=True):
         self.step_repeat = 24
         self.max_step = 80
         self.np_random = None
         self.step_num = 0
         self.seed(seed)
         self.dense_reward = dense_reward
+        self.tactile = tactile
         self.incline_rad = np.pi / 180 * 10
         project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         assert render_mode is None or render_mode in self.metadata["render_modes"]
@@ -70,10 +71,11 @@ class PushBallEnv1(gym.Env):
                 "ball_y": spaces.Box(-0.7, 0.7, shape=(1,), dtype=float),
                 "ball_vx": spaces.Box(-0.12, 0.12, shape=(1,), dtype=float),
                 "ball_vy": spaces.Box(-0.12, 0.12, shape=(1,), dtype=float),
-                "tactile_mid": spaces.Box(0, 120, shape=(1,), dtype=float),
-                "tactile_sum": spaces.Box(0, 120 * 160 / 40, shape=(1,), dtype=float),
             }
         )
+        if self.has_tactile():
+            self.observation_space["tactile_mid"] = spaces.Box(0, 120, shape=(1,), dtype=float)
+            self.observation_space["tactile_sum"] = spaces.Box(0, 120 * 160 / 40, shape=(1,), dtype=float)
 
         # end effort move
         self.action_space = spaces.Dict(
@@ -85,10 +87,6 @@ class PushBallEnv1(gym.Env):
         )
 
     def _get_obs(self):
-        color, depth = self.digits.render()
-        if self.render_mode == "human":
-            self.digits.updateGUI(color, depth)
-        self.depth_kit.update_depth(depth[0])
 
         # 将末端和球的空间坐标还原到平面坐标
         real_pos, real_quaternion = get_state.get_ee_pose(self.robot)
@@ -102,7 +100,7 @@ class PushBallEnv1(gym.Env):
         real_ball_vel = get_state.get_ball_vel(self.sphere)
         ball_plane_project_vel = rotate_mapping.xoy_point_rotate_y_axis(real_ball_vel, theta=-self.incline_rad)
 
-        return {
+        obs = {
             "x": plane_project_pos[0],
             "y": plane_project_pos[1],
             "angular": p.getEulerFromQuaternion(real_quaternion)[2],  # 恰好pybullet是按XYZ顺序转
@@ -113,9 +111,18 @@ class PushBallEnv1(gym.Env):
             "ball_y": self.ball_plane_pos[1],
             "ball_vx": ball_plane_project_vel[0],
             "ball_vy": ball_plane_project_vel[1],
-            "tactile_mid": self.depth_kit.calc_center()[1],
-            "tactile_sum": self.depth_kit.calc_total(),
         }
+        if self.has_tactile():
+            color, depth = self.digits.render()
+            if self.render_mode == "human":
+                self.digits.updateGUI(color, depth)
+            self.depth_kit.update_depth(depth[0])
+            obs.update({
+                "tactile_mid": self.depth_kit.calc_center()[1],
+                "tactile_sum": self.depth_kit.calc_total(),
+            })
+
+        return obs
 
     def _get_info(self):
         return {
@@ -207,3 +214,9 @@ class PushBallEnv1(gym.Env):
 
     def close(self):
         pass
+
+    def has_tactile(self):
+        if self.tactile:
+            return True
+        else:
+            return False

@@ -15,14 +15,22 @@ class NormalizeWrapper(gym.Wrapper):
         self.real_action_space = self.env.action_space
         self.observation_space = spaces.Box(shape=(12,), low=0, high=1)
         self.action_space = spaces.Box(shape=(3,), low=-1, high=1)
-
+        if hasattr(self.env,'has_tactile'):
+            self.has_tactile=self.env.has_tactile()
+        else:
+            self.has_tactile=False #TODO push on plane maybe error
     def _normalize_obs(self, real_obs) -> np.ndarray:
         for key in real_obs.keys():
             real_obs[key] = (real_obs[key] - self.real_observation_space[key].low) / (
                     self.real_observation_space[key].high - self.real_observation_space[key].low)
-        wrapper_obs = np.array([real_obs["x"], real_obs["y"], real_obs["angular"], real_obs["vx"], real_obs["vy"],
+        if self.has_tactile:
+            wrapper_obs = np.array([real_obs["x"], real_obs["y"], real_obs["angular"], real_obs["vx"], real_obs["vy"],
                                 real_obs["vangular"], real_obs["ball_x"], real_obs["ball_y"], real_obs["ball_vx"],
                                 real_obs["ball_vy"], real_obs["tactile_mid"], real_obs["tactile_sum"]])
+        else:
+            wrapper_obs = np.array([real_obs["x"], real_obs["y"], real_obs["angular"], real_obs["vx"], real_obs["vy"],
+                                    real_obs["vangular"], real_obs["ball_x"], real_obs["ball_y"], real_obs["ball_vx"],
+                                    real_obs["ball_vy"]])
         wrapper_obs=np.squeeze(wrapper_obs, axis=1)
         return wrapper_obs
 
