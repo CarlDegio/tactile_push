@@ -13,12 +13,16 @@ class NormalizeWrapper(gym.Wrapper):
         self.env = env
         self.real_observation_space = self.env.observation_space
         self.real_action_space = self.env.action_space
-        self.observation_space = spaces.Box(shape=(12,), low=0, high=1)
         self.action_space = spaces.Box(shape=(3,), low=-1, high=1)
         if hasattr(self.env,'has_tactile'):
             self.has_tactile=self.env.has_tactile()
         else:
             self.has_tactile=False #TODO push on plane maybe error
+
+        if self.has_tactile:
+            self.observation_space = spaces.Box(shape=(12,), low=0, high=1)
+        else:
+            self.observation_space = spaces.Box(shape=(10,), low=0, high=1)
     def _normalize_obs(self, real_obs) -> np.ndarray:
         for key in real_obs.keys():
             real_obs[key] = (real_obs[key] - self.real_observation_space[key].low) / (
