@@ -38,7 +38,7 @@ class DepthKit:
 
 
 if __name__ == "__main__":
-    depth = cv2.imread("../Test/test_figure/depth_feature_0.png", cv2.IMREAD_GRAYSCALE)
+    depth = cv2.imread("../Test/test_figure/depth_feature_3.png", cv2.IMREAD_GRAYSCALE)
     depth = np.asarray(depth * 0.002 / 255, dtype=np.float64)
     depth_kit = DepthKit(depth)
     depth_kit.show()
@@ -46,3 +46,14 @@ if __name__ == "__main__":
     print("center:", depth_kit.calc_center())
     print("sum:", depth_kit.calc_total())
     print("mean:", depth_kit.calc_mean())
+
+    depth = cv2.imread("../Test/test_figure/depth_feature_3.png")
+    center=depth_kit.calc_center()
+    center[0] = int(center[0])
+    center[1] = int(center[1])
+    # cv2.circle(depth, (center[1], center[0]), 5, (0, 0, 255), -1)
+    cv2.drawMarker(depth, (center[1], center[0]), color=(0, 0, 255), markerType=cv2.MARKER_CROSS, thickness=2)
+    cv2.imwrite("tactile_center.png", depth)
+    cv2.imshow("depth", depth)
+    cv2.waitKey(0)
+    print("?")
