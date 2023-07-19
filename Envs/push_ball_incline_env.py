@@ -1,5 +1,6 @@
 import os
 
+import cv2
 import gym
 import tacto
 from gym import spaces
@@ -76,6 +77,8 @@ class PushBallEnv1(gym.Env):
         if self.has_tactile():
             self.observation_space["tactile_mid"] = spaces.Box(0, 120, shape=(1,), dtype=float)
             self.observation_space["tactile_sum"] = spaces.Box(0, 120 * 160 / 40, shape=(1,), dtype=float)
+            self.observation_space["rgb"] = spaces.Box(0, 255, shape=(40, 40, 3), dtype=float)
+            self.observation_space["dep"] = spaces.Box(0, 1, shape=(40, 40), dtype=float)
 
         # end effort move
         self.action_space = spaces.Dict(
@@ -117,12 +120,23 @@ class PushBallEnv1(gym.Env):
             if self.render_mode == "human":
                 self.digits.updateGUI(color, depth)
             self.depth_kit.update_depth(depth[0])
+            color_processed,depth_processed=self.process_image(color[0],self.depth_kit.depth)
             obs.update({
                 "tactile_mid": self.depth_kit.calc_center()[1],
                 "tactile_sum": self.depth_kit.calc_total(),
+                "rgb": color_processed,
+                "dep": depth_processed
             })
 
         return obs
+
+    def process_image(self,color,depth):
+        color=color[:120,:,:]
+        color=cv2.resize(color,(40,40),cv2.INTER_NEAREST)
+        depth=depth[:120,:]
+        depth=cv2.resize(depth,(40,40),cv2.INTER_NEAREST)
+        # cv2.imshow("resize",color)
+        return color,depth
 
     def _get_info(self):
         return {
@@ -185,14 +199,15 @@ class PushBallEnv1(gym.Env):
 
         observation = self._get_obs()
         info = self._get_info()
-        if get_state.check_ball_in_region_3d(self.sphere,self.incline_rad, region_x=[0.55, 0.65], region_y=[-0.1, 0.1]):
+        if get_state.check_ball_in_region_3d(self.sphere, self.incline_rad, region_x=[0.55, 0.65],
+                                             region_y=[-0.1, 0.1]):
             reward = 1
         else:
             reward = 0
         if self.dense_reward:
             reward -= get_state.calc_ball_to_goal_3d(self.sphere,
                                                      rotate_mapping.xoy_point_rotate_y_axis(
-                                                              [0.6, 0, 0], theta=self.incline_rad)
+                                                         [0.6, 0, 0], theta=self.incline_rad)
                                                      )
 
         if self.step_num >= self.max_step:
