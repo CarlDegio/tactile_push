@@ -75,10 +75,10 @@ class PushBallEnv1(gym.Env):
             }
         )
         if self.has_tactile():
-            self.observation_space["tactile_mid"] = spaces.Box(0, 120, shape=(1,), dtype=float)
-            self.observation_space["tactile_sum"] = spaces.Box(0, 120 * 160 / 40, shape=(1,), dtype=float)
-            self.observation_space["rgb"] = spaces.Box(0, 255, shape=(40, 40, 3), dtype=float)
-            self.observation_space["dep"] = spaces.Box(0, 1, shape=(40, 40), dtype=float)
+            # self.observation_space["tactile_mid"] = spaces.Box(0, 120, shape=(1,), dtype=float)
+            # self.observation_space["tactile_sum"] = spaces.Box(0, 120 * 160 / 40, shape=(1,), dtype=float)
+            self.observation_space["rgb"] = spaces.Box(0, 255, shape=(64, 64, 3), dtype=float)
+            self.observation_space["dep"] = spaces.Box(0, 1, shape=(64, 64), dtype=float)
 
         # end effort move
         self.action_space = spaces.Dict(
@@ -122,8 +122,8 @@ class PushBallEnv1(gym.Env):
             self.depth_kit.update_depth(depth[0])
             color_processed,depth_processed=self.process_image(color[0],self.depth_kit.depth)
             obs.update({
-                "tactile_mid": self.depth_kit.calc_center()[1],
-                "tactile_sum": self.depth_kit.calc_total(),
+                # "tactile_mid": self.depth_kit.calc_center()[1],
+                # "tactile_sum": self.depth_kit.calc_total(),
                 "rgb": color_processed,
                 "dep": depth_processed
             })
@@ -132,9 +132,9 @@ class PushBallEnv1(gym.Env):
 
     def process_image(self,color,depth):
         color=color[:120,:,:]
-        color=cv2.resize(color,(40,40),cv2.INTER_NEAREST)
+        color=cv2.resize(color,(64,64),cv2.INTER_NEAREST)
         depth=depth[:120,:]
-        depth=cv2.resize(depth,(40,40),cv2.INTER_NEAREST)
+        depth=cv2.resize(depth,(64,64),cv2.INTER_NEAREST)
         # cv2.imshow("resize",color)
         return color,depth
 

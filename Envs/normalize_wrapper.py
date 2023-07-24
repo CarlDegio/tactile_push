@@ -20,7 +20,7 @@ class NormalizeWrapper(gym.Wrapper):
             self.has_tactile = False  # TODO push on plane maybe error
 
         if self.has_tactile:
-            self.observation_space = spaces.Box(shape=(12,), low=0, high=1)
+            self.observation_space = spaces.Box(shape=(10,), low=0, high=1)
         else:
             self.observation_space = spaces.Box(shape=(10,), low=0, high=1)
 
@@ -32,8 +32,8 @@ class NormalizeWrapper(gym.Wrapper):
             wrapper_vec_obs = np.array(
                 [real_obs["x"], real_obs["y"], real_obs["angular"], real_obs["vx"], real_obs["vy"],
                  real_obs["vangular"], real_obs["ball_x"], real_obs["ball_y"], real_obs["ball_vx"],
-                 real_obs["ball_vy"], real_obs["tactile_mid"], real_obs["tactile_sum"]])
-            wrapper_img_obs = real_obs["rgb"]
+                 real_obs["ball_vy"]],dtype=np.float32)
+            wrapper_img_obs = real_obs["rgb"].astype(np.float32)
         else:
             wrapper_vec_obs = np.array(
                 [real_obs["x"], real_obs["y"], real_obs["angular"], real_obs["vx"], real_obs["vy"],
