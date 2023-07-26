@@ -78,7 +78,7 @@ class PushBallEnv1(gym.Env):
             # self.observation_space["tactile_mid"] = spaces.Box(0, 120, shape=(1,), dtype=float)
             # self.observation_space["tactile_sum"] = spaces.Box(0, 120 * 160 / 40, shape=(1,), dtype=float)
             self.observation_space["rgb"] = spaces.Box(0, 255, shape=(64, 64, 3), dtype=float)
-            self.observation_space["dep"] = spaces.Box(0, 1, shape=(64, 64), dtype=float)
+            self.observation_space["dep"] = spaces.Box(0, 1, shape=(64, 64, 3), dtype=float)
 
         # end effort move
         self.action_space = spaces.Dict(
@@ -135,6 +135,8 @@ class PushBallEnv1(gym.Env):
         color=cv2.resize(color,(64,64),cv2.INTER_NEAREST)
         depth=depth[:120,:]
         depth=cv2.resize(depth,(64,64),cv2.INTER_NEAREST)
+        depth=np.expand_dims(depth,axis=-1)
+        depth=np.broadcast_to(depth,(64,64,3))
         # cv2.imshow("resize",color)
         return color,depth
 

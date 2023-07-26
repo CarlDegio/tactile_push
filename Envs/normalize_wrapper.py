@@ -33,7 +33,7 @@ class NormalizeWrapper(gym.Wrapper):
                 [real_obs["x"], real_obs["y"], real_obs["angular"], real_obs["vx"], real_obs["vy"],
                  real_obs["vangular"], real_obs["ball_x"], real_obs["ball_y"], real_obs["ball_vx"],
                  real_obs["ball_vy"]],dtype=np.float32)
-            wrapper_img_obs = real_obs["rgb"].astype(np.float32)
+            wrapper_img_obs = real_obs["dep"].astype(np.float32)
         else:
             wrapper_vec_obs = np.array(
                 [real_obs["x"], real_obs["y"], real_obs["angular"], real_obs["vx"], real_obs["vy"],
