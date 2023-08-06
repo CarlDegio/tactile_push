@@ -60,7 +60,7 @@ class PushBallEnv1(gym.Env):
         add_wall.add_walls_incline(self.incline_rad)
 
         # 2d end effort pos and vel, 2d ball pos and vel, 1d ball angular and vel
-        self.observation_space = spaces.Dict(
+        self.observation_space_raw = spaces.Dict(
             {
                 "x": spaces.Box(0.24, 0.68, shape=(1,), dtype=float),
                 "y": spaces.Box(-0.65, 0.65, shape=(1,), dtype=float),
@@ -72,13 +72,15 @@ class PushBallEnv1(gym.Env):
                 "ball_y": spaces.Box(-0.7, 0.7, shape=(1,), dtype=float),
                 "ball_vx": spaces.Box(-0.12, 0.12, shape=(1,), dtype=float),
                 "ball_vy": spaces.Box(-0.12, 0.12, shape=(1,), dtype=float),
+                "dep": spaces.Box(0, 1, shape=(64, 64, 3), dtype=float)
             }
         )
         if self.has_tactile():
             # self.observation_space["tactile_mid"] = spaces.Box(0, 120, shape=(1,), dtype=float)
             # self.observation_space["tactile_sum"] = spaces.Box(0, 120 * 160 / 40, shape=(1,), dtype=float)
-            self.observation_space["rgb"] = spaces.Box(0, 255, shape=(64, 64, 3), dtype=float)
-            self.observation_space["dep"] = spaces.Box(0, 1, shape=(64, 64, 3), dtype=float)
+            # self.observation_space["rgb"] = spaces.Box(0, 255, shape=(64, 64, 3), dtype=float)
+            # self.observation_space["dep"] = spaces.Box(0, 1, shape=(64, 64, 3), dtype=float)
+            pass
 
         # end effort move
         self.action_space = spaces.Dict(
@@ -124,7 +126,7 @@ class PushBallEnv1(gym.Env):
             obs.update({
                 # "tactile_mid": self.depth_kit.calc_center()[1],
                 # "tactile_sum": self.depth_kit.calc_total(),
-                "rgb": color_processed,
+                # "rgb": color_processed,
                 "dep": depth_processed
             })
 
@@ -147,16 +149,16 @@ class PushBallEnv1(gym.Env):
 
     def _set_desire_pose(self, forward, horizontal, rotate):
         self.desire_plane_pos[0] += forward
-        self.desire_plane_pos[0] = np.clip(self.desire_plane_pos[0], self.observation_space["x"].low,
-                                           self.observation_space["x"].high)
+        self.desire_plane_pos[0] = np.clip(self.desire_plane_pos[0], self.observation_space_raw["x"].low,
+                                           self.observation_space_raw["x"].high)
         self.desire_plane_pos[1] += horizontal
-        self.desire_plane_pos[1] = np.clip(self.desire_plane_pos[1], self.observation_space["y"].low,
-                                           self.observation_space["y"].high)
+        self.desire_plane_pos[1] = np.clip(self.desire_plane_pos[1], self.observation_space_raw["y"].low,
+                                           self.observation_space_raw["y"].high)
         self.desire_real_pos = rotate_mapping.xoy_point_rotate_y_axis(self.desire_plane_pos, theta=self.incline_rad)
 
         desire_rotate_angle = p.getEulerFromQuaternion(self.desire_plane_quaternion)[2] + rotate
-        desire_rotate_angle = np.clip(desire_rotate_angle, self.observation_space["angular"].low,
-                                      self.observation_space["angular"].high)
+        desire_rotate_angle = np.clip(desire_rotate_angle, self.observation_space_raw["angular"].low,
+                                      self.observation_space_raw["angular"].high)
         self.desire_plane_quaternion = p.getQuaternionFromEuler([0, 0, desire_rotate_angle])
         self.desire_real_quaternion = p.multiplyTransforms([0, 0, 0], self.scene_quaternion,
                                                            [0, 0, 0], self.desire_plane_quaternion)[1]
@@ -237,3 +239,11 @@ class PushBallEnv1(gym.Env):
             return True
         else:
             return False
+
+    @property
+    def observation_space(self):
+        spaces = {
+            "vec": gym.spaces.Box(shape=(10,), low=0, high=1),
+            "image": gym.spaces.Box(0, 255.0, shape=(64, 64, 3), dtype=float)
+        }
+        return gym.spaces.Dict(spaces)

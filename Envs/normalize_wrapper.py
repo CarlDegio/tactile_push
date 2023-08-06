@@ -11,7 +11,7 @@ class NormalizeWrapper(gym.Wrapper):
     def __init__(self, env):
         super(NormalizeWrapper, self).__init__(env)
         self.env = env
-        self.real_observation_space = self.env.observation_space
+        self.real_observation_space = self.env.observation_space_raw
         self.real_action_space = self.env.action_space
         self.action_space = spaces.Box(shape=(3,), low=-1, high=1)
         if hasattr(self.env, 'has_tactile'):
@@ -19,14 +19,17 @@ class NormalizeWrapper(gym.Wrapper):
         else:
             self.has_tactile = False  # TODO push on plane maybe error
 
-        if self.has_tactile:
-            self.observation_space = spaces.Box(shape=(10,), low=0, high=1)
-        else:
-            self.observation_space = spaces.Box(shape=(10,), low=0, high=1)
+        # if self.has_tactile:
+        #     self.observation_space = spaces.Box(shape=(10,), low=0, high=1)
+        # else:
+        #     self.observation_space = spaces.Box(shape=(10,), low=0, high=1)
 
-    def _normalize_obs(self, real_obs) -> [np.ndarray, np.ndarray]:
+    def _normalize_obs(self, real_obs, reward, is_first=False,is_terminal=False) -> [np.ndarray, np.ndarray]:
         for key in real_obs.keys():
-            real_obs[key] = (real_obs[key] - self.real_observation_space[key].low) / (
+            if key == 'dep':
+                real_obs[key] = real_obs[key] * 255.0
+            else:
+                real_obs[key] = (real_obs[key] - self.real_observation_space[key].low) / (
                     self.real_observation_space[key].high - self.real_observation_space[key].low)
         if self.has_tactile:
             wrapper_vec_obs = np.array(
@@ -41,7 +44,8 @@ class NormalizeWrapper(gym.Wrapper):
                  real_obs["ball_vy"]])
             wrapper_img_obs = np.zeros(self.real_observation_space['rgb'].shape)
         wrapper_vec_obs = np.squeeze(wrapper_vec_obs, axis=1)
-        return {'vec':wrapper_vec_obs, 'img':wrapper_img_obs}
+        return {'vec':wrapper_vec_obs, 'image':wrapper_img_obs,
+                "reward":reward,"is_first":is_first ,"is_terminal": is_terminal}
 
     def _denormalize_action(self, wrapper_action) -> dict:
         wrapper_action = (wrapper_action + 1) / 2
@@ -55,10 +59,11 @@ class NormalizeWrapper(gym.Wrapper):
     def step(self, action) -> (np.ndarray, float, bool, dict):
         real_action = self._denormalize_action(action)
         observation, reward, done, info = self.env.step(real_action)
-        observation = self._normalize_obs(observation)
+        observation = self._normalize_obs(observation,reward,is_terminal=done)
         return observation, reward, done, info
 
     def reset(self, options=None):
         real_obs = self.env.reset(options=options)
-        wrapper_obs = self._normalize_obs(real_obs)
+        wrapper_obs = self._normalize_obs(real_obs,0,is_first=True)
         return wrapper_obs
+
