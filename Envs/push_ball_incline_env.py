@@ -9,7 +9,7 @@ import pybulletX as px
 
 from Bullet import draw_debug, add_wall, reset, get_state, rotate_mapping
 from DigitUtil import depth_process
-
+import warnings
 
 class PushBallEnv1(gym.Env):
     metadata = {"render_modes": ["human", "none"]}
@@ -34,7 +34,8 @@ class PushBallEnv1(gym.Env):
             px.init(mode=p.GUI)
         else:
             px.init(mode=p.DIRECT)
-        self.robot = px.Robot(os.path.join(project_path, "Meshes/ur10_tactile.urdf"), use_fixed_base=True, flags=1)
+        self.robot = px.Robot(os.path.join(project_path, "Meshes/ur10_tactile.urdf"),
+                              use_fixed_base=True, flags=1, base_position=[-0.1, 0, 0])
         self.sphere = px.Body(os.path.join(project_path, "Meshes/sphere_small/sphere_small.urdf"),
                               base_position=[0.32, 0, 0.03],
                               use_fixed_base=False,
@@ -157,6 +158,9 @@ class PushBallEnv1(gym.Env):
         reset.reset_ball_pos(self.sphere, self.ball_real_pos)
 
         observation = self._get_obs()
+        if abs(observation['y']-observation['ball_y']) > 0.01:
+            warnings.warn("reset error: y != ball_y")
+            print("error observation:", observation)
         self.step_num = 0
 
         return observation
