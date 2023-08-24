@@ -28,6 +28,8 @@ class NormalizeWrapper(gym.Wrapper):
         for key in real_obs.keys():
             if key == 'dep':
                 real_obs[key] = real_obs[key] * 255.0
+            elif key =="scene_image":
+                pass
             else:
                 real_obs[key] = (real_obs[key] - self.real_observation_space[key].low) / (
                     self.real_observation_space[key].high - self.real_observation_space[key].low)
@@ -37,6 +39,7 @@ class NormalizeWrapper(gym.Wrapper):
                  real_obs["vangular"], real_obs["ball_x"], real_obs["ball_y"], real_obs["ball_vx"],
                  real_obs["ball_vy"]],dtype=np.float32)
             wrapper_img_obs = real_obs["dep"].astype(np.float32)
+            wrapper_scene_image_obs = real_obs["scene_image"].astype(np.float32)
         else:
             wrapper_vec_obs = np.array(
                 [real_obs["x"], real_obs["y"], real_obs["angular"], real_obs["vx"], real_obs["vy"],
@@ -44,7 +47,7 @@ class NormalizeWrapper(gym.Wrapper):
                  real_obs["ball_vy"]])
             wrapper_img_obs = np.zeros(self.real_observation_space['rgb'].shape)
         wrapper_vec_obs = np.squeeze(wrapper_vec_obs, axis=1)
-        return {'vec':wrapper_vec_obs, 'image':wrapper_img_obs,
+        return {'vec':wrapper_vec_obs, 'image':wrapper_img_obs, 'scene_image': wrapper_scene_image_obs,
                 "reward":reward,"is_first":is_first ,"is_terminal": is_terminal}
 
     def _denormalize_action(self, wrapper_action) -> dict:

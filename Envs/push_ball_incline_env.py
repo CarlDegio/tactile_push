@@ -46,6 +46,17 @@ class PushBallEnv1(gym.Env):
         self.digits.add_body(self.sphere)
         self.depth_kit = depth_process.DepthKit()
 
+        self.ViewMatrix = p.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=[0,0,0],
+                                                              distance=1.2,
+                                                              pitch=-33,
+                                                              yaw=90,
+                                                              roll=0,
+                                                              upAxisIndex=2)
+        self.ProjectionMatrix = p.computeProjectionMatrixFOV(fov=90,
+                                                             aspect=1.0,
+                                                             nearVal=0.01,
+                                                             farVal=10.0)
+
         self.desire_plane_pos = np.array([0.25, 0.0, 0.01])
         self.desire_real_pos = rotate_mapping.xoy_point_rotate_y_axis(self.desire_plane_pos, theta=self.incline_rad)
         self.desire_plane_quaternion = np.array([0, 0, 0, 1])
@@ -73,7 +84,8 @@ class PushBallEnv1(gym.Env):
                 "ball_y": spaces.Box(-0.7, 0.7, shape=(1,), dtype=float),
                 "ball_vx": spaces.Box(-0.12, 0.12, shape=(1,), dtype=float),
                 "ball_vy": spaces.Box(-0.12, 0.12, shape=(1,), dtype=float),
-                "dep": spaces.Box(0, 1, shape=(64, 64, 3), dtype=float)
+                "dep": spaces.Box(0, 1, shape=(64, 64, 3), dtype=float),
+                "scene_image": spaces.Box(0, 255, shape=(64, 64, 3), dtype=float)
             }
         )
         if self.has_tactile():
@@ -130,6 +142,8 @@ class PushBallEnv1(gym.Env):
                 # "rgb": color_processed,
                 "dep": depth_processed
             })
+        scene_image=self.get_scene_image()
+        obs.update({"scene_image":scene_image})
 
         return obs
 
@@ -142,6 +156,20 @@ class PushBallEnv1(gym.Env):
         depth=np.broadcast_to(depth,(64,64,3))
         # cv2.imshow("resize",color)
         return color,depth
+
+    def get_scene_image(self):
+        width, height, scene_image_rgb, scene_image_dep, mask = p.getCameraImage(width=128,
+                                                                                 height=128,
+                                                                                 viewMatrix=self.ViewMatrix,
+                                                                                 projectionMatrix=self.ProjectionMatrix,
+                                                                                 renderer=p.ER_BULLET_HARDWARE_OPENGL,
+                                                                                 flags=p.ER_NO_SEGMENTATION_MASK)
+        scene_image_rgb = scene_image_rgb[:, :, :3][:, :, ::-1]
+        scene_image_rgb= cv2.resize(scene_image_rgb, (64, 64), cv2.INTER_NEAREST)
+
+        # cv2.imshow("scene_image",scene_image_rgb)
+        # cv2.waitKey(1)
+        return scene_image_rgb
 
     def _get_info(self):
         return {
@@ -248,6 +276,7 @@ class PushBallEnv1(gym.Env):
     def observation_space(self):
         spaces = {
             "vec": gym.spaces.Box(shape=(10,), low=0, high=1),
-            "image": gym.spaces.Box(0, 255.0, shape=(64, 64, 3), dtype=float)
+            "image": gym.spaces.Box(0, 255.0, shape=(64, 64, 3), dtype=float),
+            "scene_image": gym.spaces.Box(0, 255.0, shape=(64, 64, 3), dtype=float)
         }
         return gym.spaces.Dict(spaces)
