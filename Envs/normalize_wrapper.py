@@ -22,7 +22,7 @@ class NormalizeWrapper(gym.Wrapper):
         shape = 10
         if self.has_tactile:
             shape += 2
-        elif self.env.shape == "box":
+        if self.env.shape == "box":
             shape += 2
 
         self.observation_space = spaces.Box(shape=(shape,), low=0, high=1)
