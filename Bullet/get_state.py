@@ -26,6 +26,16 @@ def get_ball_vel(ball: px.Body):
     return ball_vel
 
 
+def get_ball_quaternion(ball: px.Body):
+    ball_angle = ball.get_base_pose()[1]
+    return ball_angle
+
+
+def get_ball_angle_vel(ball: px.Body):
+    ball_angle_vel = ball.get_base_velocity()[1]
+    return ball_angle_vel
+
+
 def check_ball_in_region(ball: px.Body, region_x, region_y):
     ball_pos = get_ball_pos(ball)
     if region_x[0] < ball_pos[0] < region_x[1] and region_y[0] < ball_pos[1] < region_y[1]:

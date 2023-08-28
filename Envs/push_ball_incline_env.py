@@ -11,10 +11,11 @@ from Bullet import draw_debug, add_wall, reset, get_state, rotate_mapping
 from DigitUtil import depth_process
 import warnings
 
+
 class PushBallEnv1(gym.Env):
     metadata = {"render_modes": ["human", "none"]}
 
-    def __init__(self, render_mode=None, seed=None, dense_reward=False, tactile=True):
+    def __init__(self, render_mode=None, seed=None, dense_reward=False, tactile=True, shape="sphere"):
         self.step_repeat = 24
         self.max_step = 80
         self.np_random = None
@@ -23,6 +24,7 @@ class PushBallEnv1(gym.Env):
         self.dense_reward = dense_reward
         self.tactile = tactile
         self.incline_rad = np.pi / 180 * 10
+        self.shape = shape
         project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         assert render_mode is None or render_mode in self.metadata["render_modes"]
         if render_mode is None:
@@ -36,10 +38,18 @@ class PushBallEnv1(gym.Env):
             px.init(mode=p.DIRECT)
         self.robot = px.Robot(os.path.join(project_path, "Meshes/ur10_tactile.urdf"),
                               use_fixed_base=True, flags=1, base_position=[-0.1, 0, 0])
-        self.sphere = px.Body(os.path.join(project_path, "Meshes/sphere_small/sphere_small.urdf"),
-                              base_position=[0.32, 0, 0.03],
-                              use_fixed_base=False,
-                              flags=1)
+        if self.shape == "sphere":
+            self.sphere = px.Body(os.path.join(project_path, "Meshes/sphere_small/sphere_small.urdf"),
+                                  base_position=[0.32, 0, 0.03],
+                                  use_fixed_base=False,
+                                  flags=1)
+        elif self.shape == "box":
+            self.sphere = px.Body(os.path.join(project_path, "Meshes/box_small/box_small.urdf"),
+                                  base_position=[0.32, 0, 0.03],
+                                  use_fixed_base=False,
+                                  flags=1)
+        else:
+            assert False, "unknown shape"
         self.digits = tacto.Sensor()
         self.digits.add_camera(self.robot.id, self.robot.get_joint_index_by_name("digit_joint"))
         self.digits.add_body(self.sphere)
@@ -51,7 +61,9 @@ class PushBallEnv1(gym.Env):
         self.desire_real_quaternion = p.getQuaternionFromEuler([0, -self.incline_rad, 0])
         self.scene_quaternion = p.getQuaternionFromEuler([0, -self.incline_rad, 0])
         self.ball_plane_pos = np.array([0.32, 0.0, 0.03])
+        self.ball_plane_quaternion = np.array([0, 0, 0, 1])
         self.ball_real_pos = rotate_mapping.xoy_point_rotate_y_axis(self.ball_plane_pos, theta=self.incline_rad)
+        self.ball_real_quaternion = p.getQuaternionFromEuler([0, -self.incline_rad, 0])
 
         draw_debug.draw_frame(self.robot.get_joint_index_by_name("digit_joint"))
         draw_debug.draw_area(size=[0.05, 0.1, 0.05],
@@ -76,7 +88,11 @@ class PushBallEnv1(gym.Env):
         )
         if self.has_tactile():
             self.observation_space["tactile_mid"] = spaces.Box(0, 120, shape=(1,), dtype=float)
-            self.observation_space["tactile_sum"] = spaces.Box(0, 120 * 160 / 40, shape=(1,), dtype=float)
+            self.observation_space["tactile_sum"] = spaces.Box(0, 120 * 160 / 12, shape=(1,), dtype=float)
+
+        if self.shape == "box":
+            self.observation_space["ball_angular"] = spaces.Box(-np.pi/2, np.pi/2, shape=(1,), dtype=float)
+            self.observation_space["ball_vangular"] = spaces.Box(-0.5, 0.5, shape=(1,), dtype=float)
 
         # end effort move
         self.action_space = spaces.Dict(
@@ -122,6 +138,13 @@ class PushBallEnv1(gym.Env):
                 "tactile_mid": self.depth_kit.calc_center()[1],
                 "tactile_sum": self.depth_kit.calc_total(),
             })
+        if self.shape == "box":
+            self.ball_real_quaternion = get_state.get_ball_quaternion(self.sphere)
+            real_ball_angle_vel = get_state.get_ball_angle_vel(self.sphere)
+            obs.update({
+                "ball_angular": p.getEulerFromQuaternion(self.ball_real_quaternion)[2],
+                "ball_vangular": real_ball_angle_vel[2] / np.cos(self.incline_rad),
+            })
 
         return obs
 
@@ -155,10 +178,10 @@ class PushBallEnv1(gym.Env):
 
         self.ball_plane_pos = np.array([0.32, start_y, 0.03])
         self.ball_real_pos = rotate_mapping.xoy_point_rotate_y_axis(self.ball_plane_pos, theta=self.incline_rad)
-        reset.reset_ball_pos(self.sphere, self.ball_real_pos)
+        reset.reset_ball_pos(self.sphere, self.ball_real_pos, desired_quaternion=self.scene_quaternion)
 
         observation = self._get_obs()
-        if abs(observation['y']-observation['ball_y']) > 0.01:
+        if abs(observation['y'] - observation['ball_y']) > 0.01:
             warnings.warn("reset error: y != ball_y")
             print("error observation:", observation)
         self.step_num = 0
@@ -189,14 +212,15 @@ class PushBallEnv1(gym.Env):
 
         observation = self._get_obs()
         info = self._get_info()
-        if get_state.check_ball_in_region_3d(self.sphere,self.incline_rad, region_x=[0.55, 0.65], region_y=[-0.1, 0.1]):
+        if get_state.check_ball_in_region_3d(self.sphere, self.incline_rad, region_x=[0.55, 0.65],
+                                             region_y=[-0.1, 0.1]):
             reward = 1
         else:
             reward = 0
         if self.dense_reward:
             reward -= get_state.calc_ball_to_goal_3d(self.sphere,
                                                      rotate_mapping.xoy_point_rotate_y_axis(
-                                                              [0.6, 0, 0], theta=self.incline_rad)
+                                                         [0.6, 0, 0], theta=self.incline_rad)
                                                      )
 
         if self.step_num >= self.max_step:

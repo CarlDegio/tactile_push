@@ -25,11 +25,13 @@ def reset_ur10_cartesian(robot: px.Robot, desired_position=None, desired_orienta
         reset_ur10_joints(robot, desired_joint_positions)
 
 
-def reset_ball_pos(sphere: px.Body, desired_position=None):
+def reset_ball_pos(sphere: px.Body, desired_position=None, desired_quaternion=None):
     """
     move ball to desired pose
     """
+    if desired_quaternion is None:
+        desired_quaternion = [0, 0, 0, 1]
     if desired_position is None:
         desired_position = [0.7, 0.0, 0.5]
     for i in range(3):
-        p.resetBasePositionAndOrientation(sphere.id, desired_position, [0, 0, 0, 1])
+        p.resetBasePositionAndOrientation(sphere.id, desired_position, desired_quaternion)
